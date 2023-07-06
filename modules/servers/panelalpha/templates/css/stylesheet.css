@@ -1,0 +1,16 @@
+.plan-settings {
+    display: inline-block;
+    width: 120px;
+    font-weight: bold;
+}
+
+.package-settings {
+    display: inline-block;
+    width: 220px;
+    font-weight: bold;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: gray;
+}

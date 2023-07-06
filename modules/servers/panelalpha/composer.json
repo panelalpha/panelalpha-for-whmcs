@@ -1,0 +1,12 @@
+{
+    "name": "vendor/panelalpha",
+    "authors": [
+        {
+            "name": "Sebastian Kostecki",
+            "email": "sebastian.kostecki@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.6"
+    }
+}
