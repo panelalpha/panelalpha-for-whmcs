@@ -3,6 +3,7 @@
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
 use \Illuminate\Database\Eloquent\Model;
+use WHMCS\Module\Server\PanelAlpha\Helper;
 
 /**
  * @property string $configoption1
@@ -125,5 +126,10 @@ class Product extends Model
             $selectedPlan = $plans[0];
         }
         return $selectedPlan;
+    }
+
+    public function getServer()
+    {
+        return Helper::getServer($this->servergroup);
     }
 }
