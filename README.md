@@ -1,4 +1,4 @@
-# PanelAlpha For WHMCS
-You can find the official module documentation under the following link: https://www.panelalpha.com/documentation/billing-systems-integrations/whmcs/
+# PanelAlpha For WHMCS module
 
-In case you need any assistance from our side, please do not hesitate to contact our PanelAlpha support team by opening a ticket: 
+All the instructions are available at: https://www.panelalpha.com/documentation/billing-systems-integrations/whmcs/
+
