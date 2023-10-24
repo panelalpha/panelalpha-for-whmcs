@@ -1,4 +1,21 @@
-<link href='{$config['SystemURL']}/modules/servers/panelalpha/templates/css/stylesheet.css' rel='stylesheet'/>
+<style>
+    .plan-settings {
+        display: inline-block;
+        width: 120px;
+        font-weight: bold;
+    }
+
+    .package-settings {
+        display: inline-block;
+        width: 220px;
+        font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 12px;
+        color: gray;
+    }
+</style>a
 
 <script type="text/javascript">
 	$(document).ajaxStop(function () {

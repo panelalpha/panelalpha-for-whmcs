@@ -105,7 +105,14 @@ class Product extends Model
         return $this->belongsTo('WHMCS\Module\Server\PanelAlpha\Models\ServerGroup', 'servergroup');
     }
 
-    public function setConfigOptionsEnabledWhenProductCreated()
+    public function customFields()
+    {
+        return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
+    }
+
+
+
+        public function setConfigOptionsEnabledWhenProductCreated()
     {
         if (!$this->configoption1) {
             $this->configoption2 = 'on';

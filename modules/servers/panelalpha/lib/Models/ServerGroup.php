@@ -23,6 +23,10 @@ class ServerGroup extends Model
 
     public function activeServer()
     {
-        return $this->servers()->where('active', 1)->first()->toArray();
+        return $this->servers()
+            ->where('active', 1)
+            ->type('type', 'panelalpha')
+            ->first()
+            ->toArray();
     }
 }

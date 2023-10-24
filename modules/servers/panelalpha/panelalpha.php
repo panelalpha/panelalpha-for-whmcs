@@ -40,7 +40,6 @@ if (basename($_SERVER['SCRIPT_NAME']) == "configservers.php") {
  */
 function panelalpha_MetaData(): array
 {
-    $MGLANG = Lang::getLang();
     return [
         'DisplayName' => 'PanelAlpha',
         'APIVersion' => '1.1',
@@ -62,9 +61,14 @@ function panelalpha_ConfigOptions($params): ?array
     if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
         try {
             $view = new View();
-            $server = Helper::getServer((int)$_POST['servergroup']);
-            if (!$server) {
+            if (!Helper::isServerGroupWithPanelAlphaServer()) {
                 $data['content'] = $view->fetch('noServerMessage.tpl');
+                echo json_encode($data);
+                die();
+            }
+
+            if (!$_POST['servergroup'] && Helper::isServerGroupWithPanelAlphaServer()) {
+                $data['content'] = $view->fetch('selectServerGroupMessage.tpl');
                 echo json_encode($data);
                 die();
             }
@@ -77,6 +81,7 @@ function panelalpha_ConfigOptions($params): ?array
             $product = Product::findOrFail($_REQUEST['id']);
             $product->setConfigOptionsEnabledWhenProductCreated();
 
+            $server = Helper::getServer((int)$_POST['servergroup']);
             $connection = new PanelAlphaClient($server);
             $connection->validate();
 
@@ -454,6 +459,7 @@ function panelalpha_ClientArea(array $params)
             'tabOverviewModuleOutputTemplate' => 'templates/clientarea.tpl',
             'templateVariables' => [
                 'url' => $url,
+                'MGLANG' => Lang::getLang()
             ],
         );
     } catch (Exception $e) {

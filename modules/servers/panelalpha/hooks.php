@@ -1,29 +1,27 @@
 <?php
 
 use WHMCS\Database\Capsule;
+use WHMCS\Module\Server\PanelAlpha\Helper;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
+use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
+use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
 
 
 add_hook('AdminAreaFooterOutput', 1, function ($params) {
     if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php' && isset($_REQUEST['id'])) {
         $panelAlphaWelcomeEmail = EmailTemplate::where('name', 'PanelAlpha Welcome Email')->first();
-        $product = \WHMCS\Module\Server\PanelAlpha\Models\Product::findOrFail($_REQUEST['id']);
-        $selected = $product->welcomeemail == $panelAlphaWelcomeEmail->id;
         return <<<HTML
 <script type="text/javascript">
 	const welcomeEmail = $('[name="welcomeemail"]');
-	console.log(welcomeEmail.val())
 	const option = $('<option>', {
       value: {$panelAlphaWelcomeEmail->id},
       text: "{$panelAlphaWelcomeEmail->name}"
     });
 
     welcomeEmail.append(option);
-    if ({$selected}) {
-      welcomeEmail.val({$panelAlphaWelcomeEmail->id})	
-	}
+    welcomeEmail.val({$panelAlphaWelcomeEmail->id});
 </script>
 HTML;
     }
@@ -33,11 +31,13 @@ add_hook('ClientAreaSecondaryNavbar', 1, function (MenuItem $secondaryNavbar) {
     if (isset($GLOBALS['legacyClient'])) {
         $clientId = $GLOBALS['legacyClient']->getID();
         $panelAlphaFirstService = Service::getFirstServiceForClient($clientId);
+
         global $CONFIG;
+        $MGLANG = Lang::getLang();
 
         if ($panelAlphaFirstService->configoption5 === 'on') {
             $secondaryNavbar->addChild('panelalpha_sso_link', array(
-                'label' => '<span style="margin-right: 12px; color: #5bc0de;">Manage Wordpress <i class="fas fa-external-link"></i></span>',
+                'label' => '<span style="margin-right: 12px; color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' .$MGLANG['ca']['general']['panelalpha']['sso_link'] .' <i class="fas fa-external-link"></i></span>',
                 'order' => 1,
                 'uri' => $CONFIG['SystemURL'] . '/modules/servers/panelalpha/lib/SsoLogin.php?id=' . $panelAlphaFirstService->id,
             ));
@@ -56,28 +56,22 @@ add_hook('ClientAreaFooterOutput', 1, function ($params) {
 });
 
 
-add_hook('ClientAreaPageHome', 1, function ($params) {
-    $panelAlphaServiceId = $_REQUEST['paupgradeserviceid'] ?? "";
-    if ($panelAlphaServiceId) {
-        $clientId = $params['client']->id;
-        $service = Capsule::table('tblhosting')
-            ->join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
-            ->join('tblcustomfields', 'tblcustomfields.relid', '=', 'tblproducts.id')
-            ->join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
-            ->where('tblcustomfields.type', 'product')
-            ->where('tblcustomfields.fieldname', 'Service ID')
-            ->where('tblproducts.servertype', 'panelalpha')
-            ->where('tblhosting.userid', $clientId)
-            ->where('tblcustomfieldsvalues.value', $panelAlphaServiceId)
-            ->select([
-                'tblhosting.*'
-            ])
-            ->first();
-        global $CONFIG;
-        header("Location: {$CONFIG['SystemURL']}/upgrade.php?type=package&id={$service->id}");
-        die();
+add_hook('ClientAreaPageHome', 1, function () {
+    if(empty($_REQUEST['paupgradeserviceid'])) {
+        return;
     }
+
+    $panelAlphaServiceId = $_REQUEST['paupgradeserviceid'];
+    $hosting = Hosting::getService($panelAlphaServiceId);
+    if (!$hosting) {
+        Helper::showPageNotFound();
+    }
+
+    global $CONFIG;
+    header("Location: {$CONFIG['SystemURL']}/upgrade.php?type=package&id={$hosting->id}");
+    exit();
 });
+
 
 add_hook('AdminAreaHeadOutput', 1, function ($params) {
     if (isset($params['filename']) && $params['filename'] != 'configservers' && (isset($_GET['action']) && $_GET['action'] != "manage" || !isset($_GET['id']))) {

@@ -41,14 +41,6 @@ class Server extends Model
         'disabled'
     ];
 
-    public static function getPanelAlphaServer()
-    {
-        return self::where('type', 'panelalpha')
-            ->where('active', 1)
-            ->first()
-            ->toArray();
-    }
-
     public function groups()
     {
         return $this->belongsToMany(

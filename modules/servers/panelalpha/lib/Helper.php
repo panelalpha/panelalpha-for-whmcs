@@ -86,17 +86,42 @@ class Helper
     {
         $serverGroup = ServerGroup::find($serverGroupId);
         if (!$serverGroup) {
-            return Server::getPanelAlphaServer();
+            return null;
         }
         $serversAssignedToGroup = $serverGroup->servers;
         if ($serversAssignedToGroup->isEmpty()) {
-            return Server::getPanelAlphaServer();
+            return null;
         }
         $count = $serversAssignedToGroup->count();
-        if ($count === 1) {
+        if ($count === 1 && $serversAssignedToGroup[0]->type === 'panelalpha') {
             return $serversAssignedToGroup[0]->toArray();
         } else {
             return $serverGroup->activeServer();
         }
+    }
+
+    public static function isServerGroupWithPanelAlphaServer(): bool
+    {
+        $serverGroups = ServerGroup::get();
+        foreach ($serverGroups as $serverGroup) {
+            foreach ($serverGroup->servers as $server) {
+                if ($server->type === 'panelalpha') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static function showPageNotFound(): void
+    {
+        gracefulCoreRequiredFileInclude("/includes/clientareafunctions.php");
+        $response = new \WHMCS\ClientArea();
+        $response->setPageTitle("404 - Page Not Found");
+        $response->setTemplate("error/page-not-found");
+        $response->skipMainBodyContainer();
+        $response = $response->withStatus(404);
+        (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+        exit;
     }
 }

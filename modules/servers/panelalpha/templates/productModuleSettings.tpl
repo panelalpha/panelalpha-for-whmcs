@@ -1,4 +1,21 @@
-<link href='{$config['SystemURL']}/modules/servers/panelalpha/templates/css/stylesheet.css' rel='stylesheet'/>
+<style>
+    .plan-settings {
+        display: inline-block;
+        width: 120px;
+        font-weight: bold;
+    }
+
+    .package-settings {
+        display: inline-block;
+        width: 220px;
+        font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 12px;
+        color: gray;
+    }
+</style>
 <script type="text/javascript">
 	$(document).ajaxStop(function () {
 		const selectElement = $('#select-plan');
@@ -41,9 +58,14 @@
 				accountConfig.forEach(function (config) {
 					let fields = config.split(':');
 
-					let transformedText = fields[0].replace(/_/g, " ").replace(/\b\w/g, function (match) {
-						return match.toUpperCase();
-					});
+					let transformedText = ""
+                    if (fields[0] === 'whm_package') {
+                        transformedText = "WHM Package";
+                    } else {
+                        transformedText = fields[0].replace(/_/g, " ").replace(/\b\w/g, function (match) {
+                            return match.toUpperCase();
+                        });
+                    }
 
 					let transformedContent = fields[1].charAt(0).toUpperCase() + fields[1].substring(1);
 
@@ -274,8 +296,13 @@
         <tr class="account-config">
             <td></td>
             <td>
-                <span class="plan-settings" id="{$key}">{$key|replace: '_':' '|capitalize}:</span> <span
-                        id="{$value}">{$value|capitalize}</span>
+                {if $key == 'whm_package'}
+                    <span class="plan-settings" id="{$key}">WHM Package:</span>
+                    <span id="{$value}">{$value|capitalize}</span>
+                {else}
+                    <span class="plan-settings" id="{$key}">{$key|replace: '_':' '|capitalize}:</span>
+                    <span id="{$value}">{$value|capitalize}</span>
+                {/if}
             </td>
         </tr>
     {/foreach}

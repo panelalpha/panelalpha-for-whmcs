@@ -27,3 +27,6 @@ $_LANG['aa']['addon']['module_settings']['plugin_automation']['no action'] = 'No
 
 $_LANG['aa']['addon']['module_settings']['theme_automation']['only install'] = 'Only Install';
 $_LANG['aa']['addon']['module_settings']['theme_automation']['no action'] = 'No Action';
+
+$_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
+$_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'Log Into Your PanelAlpha';
