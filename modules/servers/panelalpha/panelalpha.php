@@ -420,6 +420,10 @@ function panelalpha_ChangePackage(array $params): string
  */
 function panelalpha_TestConnection(array $params): array
 {
+    if (empty($params['serverport'])) {
+        $params['serverport'] = 2001;
+    }
+
     try {
         $connection = new PanelAlphaClient($params);
         $connection->validate();
