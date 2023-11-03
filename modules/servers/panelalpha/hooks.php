@@ -4,6 +4,7 @@ use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\Helper;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
+use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
@@ -37,7 +38,7 @@ add_hook('ClientAreaSecondaryNavbar', 1, function (MenuItem $secondaryNavbar) {
 
         if ($panelAlphaFirstService->configoption5 === 'on') {
             $secondaryNavbar->addChild('panelalpha_sso_link', array(
-                'label' => '<span style="margin-right: 12px; color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' .$MGLANG['ca']['general']['panelalpha']['sso_link'] .' <i class="fas fa-external-link"></i></span>',
+                'label' => '<span style="margin-right: 12px; color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' . $MGLANG['ca']['general']['panelalpha']['sso_link'] . ' <i class="fas fa-external-link"></i></span>',
                 'order' => 1,
                 'uri' => $CONFIG['SystemURL'] . '/modules/servers/panelalpha/lib/SsoLogin.php?id=' . $panelAlphaFirstService->id,
             ));
@@ -57,7 +58,7 @@ add_hook('ClientAreaFooterOutput', 1, function ($params) {
 
 
 add_hook('ClientAreaPageHome', 1, function () {
-    if(empty($_REQUEST['paupgradeserviceid'])) {
+    if (empty($_REQUEST['paupgradeserviceid'])) {
         return;
     }
 
@@ -79,4 +80,14 @@ add_hook('AdminAreaHeadOutput', 1, function ($params) {
     }
     $jsFile = ROOTDIR . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "servers" . DIRECTORY_SEPARATOR . "panelalpha" . DIRECTORY_SEPARATOR . "templates" . DIRECTORY_SEPARATOR . "js" . DIRECTORY_SEPARATOR . "server.js";
     return '<script type="text/javascript"> ' . file_get_contents($jsFile) . '</script>';
+});
+
+add_hook('ServerAdd', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    $server->setDefaultPort();
+});
+
+add_hook('ServerEdit', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    $server->setDefaultPort();
 });
