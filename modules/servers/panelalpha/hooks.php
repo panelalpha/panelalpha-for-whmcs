@@ -15,7 +15,7 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
         $product = Product::findOrFail($_REQUEST['id']);
         if ($product->servertype === 'panelalpha') {
             $panelAlphaWelcomeEmail = EmailTemplate::where('name', 'PanelAlpha Welcome Email')->first();
-            $isSelected = $panelAlphaWelcomeEmail->id === $product->welcomeemail;
+            $isSelected = json_encode($panelAlphaWelcomeEmail->id === $product->welcomeemail);
             return <<<HTML
 <script type="text/javascript">
 	const welcomeEmail = $('[name="welcomeemail"]');
@@ -23,9 +23,11 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
       value: {$panelAlphaWelcomeEmail->id},
       text: "{$panelAlphaWelcomeEmail->name}"
     });
-
+    
     welcomeEmail.append(option);
-	if ({$isSelected}) {
+    
+	let isSelected = {$isSelected};
+	if (isSelected) {
 	  welcomeEmail.val({$panelAlphaWelcomeEmail->id});
 	}
 </script>
@@ -81,9 +83,17 @@ add_hook('ClientAreaPageHome', 1, function () {
 
 
 add_hook('AdminAreaHeadOutput', 1, function ($params) {
-    if (isset($params['filename']) && $params['filename'] != 'configservers' && (isset($_GET['action']) && $_GET['action'] != "manage" || !isset($_GET['id']))) {
+    if (isset($params['filename']) && $params['filename'] != 'configservers' && ((isset($_GET['action']) && $_GET['action'] != "manage") || !isset($_GET['id']))) {
         return;
     }
     $jsFile = ROOTDIR . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "servers" . DIRECTORY_SEPARATOR . "panelalpha" . DIRECTORY_SEPARATOR . "templates" . DIRECTORY_SEPARATOR . "js" . DIRECTORY_SEPARATOR . "server.js";
     return '<script type="text/javascript"> ' . file_get_contents($jsFile) . '</script>';
+});
+
+add_hook('ProductEdit', 1, function($params) {
+    $product = Product::findOrFail($params['pid']);
+    if ($product->servertype === 'panelalpha' && !$product->showdomainoptions) {
+        $product->showdomainoptions = true;
+        $product->save();
+    }
 });
