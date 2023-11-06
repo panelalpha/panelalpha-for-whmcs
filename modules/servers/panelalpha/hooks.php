@@ -4,7 +4,7 @@ use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\Helper;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
-use WHMCS\Module\Server\PanelAlpha\Models\Server;
+use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
@@ -12,8 +12,11 @@ use WHMCS\View\Menu\Item as MenuItem;
 
 add_hook('AdminAreaFooterOutput', 1, function ($params) {
     if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php' && isset($_REQUEST['id'])) {
-        $panelAlphaWelcomeEmail = EmailTemplate::where('name', 'PanelAlpha Welcome Email')->first();
-        return <<<HTML
+        $product = Product::findOrFail($_REQUEST['id']);
+        if ($product->servertype === 'panelalpha') {
+            $panelAlphaWelcomeEmail = EmailTemplate::where('name', 'PanelAlpha Welcome Email')->first();
+            $isSelected = $panelAlphaWelcomeEmail->id === $product->welcomeemail;
+            return <<<HTML
 <script type="text/javascript">
 	const welcomeEmail = $('[name="welcomeemail"]');
 	const option = $('<option>', {
@@ -22,9 +25,12 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
     });
 
     welcomeEmail.append(option);
-    welcomeEmail.val({$panelAlphaWelcomeEmail->id});
+	if ({$isSelected}) {
+	  welcomeEmail.val({$panelAlphaWelcomeEmail->id});
+	}
 </script>
 HTML;
+        }
     }
 });
 
@@ -80,14 +86,4 @@ add_hook('AdminAreaHeadOutput', 1, function ($params) {
     }
     $jsFile = ROOTDIR . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "servers" . DIRECTORY_SEPARATOR . "panelalpha" . DIRECTORY_SEPARATOR . "templates" . DIRECTORY_SEPARATOR . "js" . DIRECTORY_SEPARATOR . "server.js";
     return '<script type="text/javascript"> ' . file_get_contents($jsFile) . '</script>';
-});
-
-add_hook('ServerAdd', 1, function ($params) {
-    $server = Server::findOrFail($params['serverid']);
-    $server->setDefaultPort();
-});
-
-add_hook('ServerEdit', 1, function ($params) {
-    $server = Server::findOrFail($params['serverid']);
-    $server->setDefaultPort();
 });
