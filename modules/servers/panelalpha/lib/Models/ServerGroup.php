@@ -2,10 +2,12 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
+use Exception;
 use \Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static where(string $column, string $value)
+ * @property $servers
  */
 class ServerGroup extends Model
 {
@@ -14,19 +16,29 @@ class ServerGroup extends Model
     public function servers()
     {
         return $this->belongsToMany(
-            'WHMCS\Module\Server\PanelAlpha\Models\Server',
+            Server::class,
             'tblservergroupsrel',
             'groupid',
             'serverid'
         );
     }
 
-    public function activeServer()
+    /**
+     * @return mixed
+     * @throws Exception
+     */
+    public function getFirstServer()
     {
-        return $this->servers()
-            ->where('active', 1)
-            ->type('type', 'panelalpha')
-            ->first()
-            ->toArray();
+        $serversAssignedToGroup = $this->servers;
+        if ($serversAssignedToGroup->isEmpty()) {
+            throw new Exception('No servers assigned to group');
+        }
+
+        foreach ($serversAssignedToGroup as $server) {
+            if ($server->type === 'panelalpha' && $server->active) {
+                return $server->toArray();
+            }
+        }
+        throw new Exception('No PanelAlpha servers in group');
     }
 }

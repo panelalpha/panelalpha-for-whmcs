@@ -133,8 +133,11 @@ class Product extends Model
         return $selectedPlan;
     }
 
+    /**
+     * @return array
+     */
     public function getServer()
     {
-        return Helper::getServer($this->servergroup);
+        return $this->serverGroup->getFirstServer();
     }
 }

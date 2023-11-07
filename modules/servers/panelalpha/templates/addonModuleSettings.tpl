@@ -15,7 +15,7 @@
         font-size: 12px;
         color: gray;
     }
-</style>a
+</style>
 
 <script type="text/javascript">
 	$(document).ajaxStop(function () {

@@ -8,6 +8,7 @@ use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Server;
+use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
 use WHMCS\Module\Server\PanelAlpha\Models\UsageItem;
 use WHMCS\Module\Server\PanelAlpha\PanelAlphaClient;
 use WHMCS\Module\Server\PanelAlpha\LocalApi;
@@ -81,7 +82,12 @@ function panelalpha_ConfigOptions($params): ?array
             $product = Product::findOrFail($_REQUEST['id']);
             $product->setConfigOptionsEnabledWhenProductCreated();
 
-            $server = Helper::getServer((int)$_POST['servergroup']);
+
+            $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
+            if (!$serverGroup) {
+                throw new Exception('No Server Group');
+            }
+            $server = $serverGroup->getFirstServer();
             $connection = new PanelAlphaClient($server);
             $connection->validate();
 
@@ -107,7 +113,7 @@ function panelalpha_ConfigOptions($params): ?array
             $view->assign('usageItems', $usageItems);
             $data['content'] = $view->fetch('productModuleSettings.tpl');
         } catch (\Exception $e) {
-            $data['content'] = '<div class="errorbox">' . $e->getMessage() . '</span></div>';
+            $data['content'] = '<div class="errorbox">' . $e->getMessage() . $e->getTraceAsString() . '</span></div>';
         }
         echo json_encode($data);
         die();
@@ -129,8 +135,12 @@ function panelalpha_ConfigOptions($params): ?array
     } else if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
         try {
             $view = new View();
-            $server = Helper::getServer((int)$_POST['servergroup']);
-            if (!$server) {
+            $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
+            if (!$serverGroup) {
+                throw new Exception('No Server Group');
+            }
+            $server = $serverGroup->getFirstServer();
+            if (empty($server)) {
                 $data['content'] = $view->fetch('noServerMessage.tpl');
                 echo json_encode($data);
                 die();

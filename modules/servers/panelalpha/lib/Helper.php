@@ -82,24 +82,6 @@ class Helper
         ]);
     }
 
-    public static function getServer(int $serverGroupId)
-    {
-        $serverGroup = ServerGroup::find($serverGroupId);
-        if (!$serverGroup) {
-            return null;
-        }
-        $serversAssignedToGroup = $serverGroup->servers;
-        if ($serversAssignedToGroup->isEmpty()) {
-            return null;
-        }
-        $count = $serversAssignedToGroup->count();
-        if ($count === 1 && $serversAssignedToGroup[0]->type === 'panelalpha') {
-            return $serversAssignedToGroup[0]->toArray();
-        } else {
-            return $serverGroup->activeServer();
-        }
-    }
-
     public static function isServerGroupWithPanelAlphaServer(): bool
     {
         $serverGroups = ServerGroup::get();
