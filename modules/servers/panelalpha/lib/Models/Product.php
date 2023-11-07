@@ -110,8 +110,6 @@ class Product extends Model
         return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
     }
 
-
-
         public function setConfigOptionsEnabledWhenProductCreated()
     {
         if (!$this->configoption1) {

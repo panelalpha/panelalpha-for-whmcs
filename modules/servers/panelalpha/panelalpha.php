@@ -420,10 +420,6 @@ function panelalpha_ChangePackage(array $params): string
  */
 function panelalpha_TestConnection(array $params): array
 {
-    if (empty($params['serverport'])) {
-        $params['serverport'] = 2001;
-    }
-
     try {
         $connection = new PanelAlphaClient($params);
         $connection->validate();
@@ -456,7 +452,7 @@ function panelalpha_TestConnection(array $params): array
 function panelalpha_ClientArea(array $params)
 {
     global $CONFIG;
-    $url = $CONFIG['SystemURL'] . '/modules/servers/panelalpha/lib/SsoLogin.php?id=' . $params['serviceid'];
+    $url = $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $params['serviceid'];
 
     try {
         return array(

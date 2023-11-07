@@ -8,6 +8,7 @@ use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
+use GuzzleHttp\Client;
 
 
 add_hook('AdminAreaFooterOutput', 1, function ($params) {
@@ -15,7 +16,6 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
         $product = Product::findOrFail($_REQUEST['id']);
         if ($product->servertype === 'panelalpha') {
             $panelAlphaWelcomeEmail = EmailTemplate::where('name', 'PanelAlpha Welcome Email')->first();
-            $isSelected = json_encode($panelAlphaWelcomeEmail->id === $product->welcomeemail);
             return <<<HTML
 <script type="text/javascript">
 	const welcomeEmail = $('[name="welcomeemail"]');
@@ -25,11 +25,7 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
     });
     
     welcomeEmail.append(option);
-    
-	let isSelected = {$isSelected};
-	if (isSelected) {
-	  welcomeEmail.val({$panelAlphaWelcomeEmail->id});
-	}
+	welcomeEmail.val({$panelAlphaWelcomeEmail->id});
 </script>
 HTML;
         }
@@ -48,7 +44,7 @@ add_hook('ClientAreaSecondaryNavbar', 1, function (MenuItem $secondaryNavbar) {
             $secondaryNavbar->addChild('panelalpha_sso_link', array(
                 'label' => '<span style="margin-right: 12px; color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' . $MGLANG['ca']['general']['panelalpha']['sso_link'] . ' <i class="fas fa-external-link"></i></span>',
                 'order' => 1,
-                'uri' => $CONFIG['SystemURL'] . '/modules/servers/panelalpha/lib/SsoLogin.php?id=' . $panelAlphaFirstService->id,
+                'uri' => $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $panelAlphaFirstService->id,
             ));
         }
     }
@@ -95,5 +91,30 @@ add_hook('ProductEdit', 1, function($params) {
     if ($product->servertype === 'panelalpha' && !$product->showdomainoptions) {
         $product->showdomainoptions = true;
         $product->save();
+    }
+});
+
+add_hook('ClientAreaProductDetails', 1, function($params) {
+    if ($_REQUEST['sso'] === 'yes') {
+        $service = Service::findOrFail($_REQUEST['id']);
+        $server = $service->product->getServer();
+        $userId = Helper::getCustomField($_REQUEST['id'], 'User ID');
+
+        $client = new Client();
+
+        $hostname = $server['port'] ? $server['hostname'] . ':' . $server['port'] : $server['hostname'];
+
+        $promise = $client->postAsync('https://' . $hostname . '/api/admin/users/' . $userId . '/sso-token', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $server['accesshash']
+            ],
+            'verify' => $server['secure'] === 'on'
+        ])->then(function ($response) {
+            $data = json_decode($response->getBody()->getContents());
+            return $data->data;
+        });
+        $data = $promise->wait();
+        header("Location: {$data->url}/sso-login?token={$data->token}");
+        exit();
     }
 });

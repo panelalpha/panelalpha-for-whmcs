@@ -7,8 +7,6 @@ use \Illuminate\Database\Eloquent\Model;
 /**
  * @method static where(string $column, string $value)
  * @method static findOrFail(int $serverid)
- * @property int $port
- * @property string $type
  */
 class Server extends Model
 {
@@ -43,8 +41,6 @@ class Server extends Model
         'disabled'
     ];
 
-    public $timestamps = false;
-
     public function groups()
     {
         return $this->belongsToMany(
@@ -53,16 +49,5 @@ class Server extends Model
             'serverid',
             'groupid'
         );
-    }
-
-    /**
-     * @return void
-     */
-    public function setDefaultPort(): void
-    {
-        if ($this->type === 'panelalpha' && !$this->port) {
-            $this->port = 2001;
-            $this->save();
-        }
     }
 }
