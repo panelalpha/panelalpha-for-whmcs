@@ -16,12 +16,13 @@ class PanelAlphaClient
 
     public function __construct(array $params)
     {
+        $protocol = $params['serverhttpprefix'] ?? $params['secure'] === 'on' ? 'https' : 'http';
+        $hostname = $params['serverhostname'] ?? $params['hostname'];
         if ($params['serverport'] || $params['port']) {
             $port = $params['serverport'] ?? $params['port'];
-            $hostname = $params['serverhostname'] ?? $params['hostname'];
-            $this->apiUrl = $hostname . ":" . $port ?? $hostname . ':' . $port;
+            $this->apiUrl = trim($protocol . '://' . $hostname . ":" . $port, '/');
         } else {
-            $this->apiUrl = $params['serverhostname'] ?? $params['hostname'];
+            $this->apiUrl = trim($protocol . '://' . $hostname, '/');
         }
 
         $this->secureMode = $params['serversecure'] ?? $params['secure'];
@@ -309,7 +310,7 @@ class PanelAlphaClient
         if (!$this->apiUrl) {
             throw new \Exception('Api url not set.');
         }
-        $url = 'https://' . $this->apiUrl . '/api/admin/' . $endpoint;
+        $url = $this->apiUrl . '/api/admin/' . $endpoint;
         $options = [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiToken

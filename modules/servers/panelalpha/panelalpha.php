@@ -113,7 +113,7 @@ function panelalpha_ConfigOptions($params): ?array
             $view->assign('usageItems', $usageItems);
             $data['content'] = $view->fetch('productModuleSettings.tpl');
         } catch (\Exception $e) {
-            $data['content'] = '<div class="errorbox">' . $e->getMessage() . $e->getTraceAsString() . '</span></div>';
+            $data['content'] = '<div class="errorbox">' . $e->getMessage() . '</span></div>';
         }
         echo json_encode($data);
         die();

@@ -35,7 +35,7 @@ class ServerGroup extends Model
         }
 
         foreach ($serversAssignedToGroup as $server) {
-            if ($server->type === 'panelalpha' && $server->active) {
+            if ($server->type === 'panelalpha' && !$server->disabled) {
                 return $server->toArray();
             }
         }
