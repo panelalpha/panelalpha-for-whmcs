@@ -100,7 +100,7 @@ class PanelAlphaClient
     }
 
     /**
-     * @param stdClass $user
+     * @param array $user
      * @param array $params
      * @return stdClass
      * @throws GuzzleException
@@ -125,10 +125,10 @@ class PanelAlphaClient
      * @param string $theme
      * @param int $serviceId
      * @param int $userId
-     * @return void
+     * @return stdClass
      * @throws GuzzleException
      */
-    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId): void
+    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId): ?stdClass
     {
         $endpoint = 'instances';
         $method = 'POST';
@@ -139,7 +139,7 @@ class PanelAlphaClient
             'user_id' => $userId,
             'service_id' => $serviceId,
         ];
-        $this->request($method, $endpoint, $data);
+        return $this->request($method, $endpoint, $data);
     }
 
 

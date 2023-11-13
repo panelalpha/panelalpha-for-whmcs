@@ -11,6 +11,8 @@ use WHMCS\Module\Server\PanelAlpha\Helper;
  * @property string $configoption3
  * @property string $configoption4
  * @property string $configoption5
+ * @property string $configoption6
+ * @property bool $showdomainoptions
  * @method static findOrFail(mixed $id)
  */
 class Product extends Model
@@ -110,7 +112,7 @@ class Product extends Model
         return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
     }
 
-        public function setConfigOptionsEnabledWhenProductCreated()
+    public function setConfigOptionsEnabledWhenProductCreated()
     {
         if (!$this->configoption1) {
             $this->configoption2 = 'on';
@@ -139,5 +141,33 @@ class Product extends Model
     public function getServer()
     {
         return $this->serverGroup->getFirstServer();
+    }
+
+    /**
+     * @param array $config
+     * @return void
+     */
+    public function saveConfigOptions(array $config): void
+    {
+        foreach ($config as $key => $value) {
+            $this->{'configoption' . $key} = $value;
+        }
+        $this->save();
+    }
+
+    /**
+     * @return void
+     */
+    public function setShowDomainOption(): void
+    {
+        $automaticInstallInstance = $this->configoption2 === 'on';
+        $onboardingType = $this->configoption6;
+
+        if ($automaticInstallInstance && $onboardingType === 'Standard') {
+            $this->showdomainoptions = true;
+        } else {
+            $this->showdomainoptions = false;
+        }
+        $this->save();
     }
 }

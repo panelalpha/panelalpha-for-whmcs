@@ -83,6 +83,15 @@
 			}
 		});
 
+		const onboardingType = $('#onboarding-name');
+        $('[name="configoption[6]"]').val(onboardingType.text());
+
+        onboardingType.on("DOMSubtreeModified", function() {
+            let onboardingTypeValue = $(this).text();
+            $('[name="configoption[6]"]').val(onboardingTypeValue);
+        });
+
+
 		let automaticCheckbox = $('[name="configoption[2]"]');
 		let manualTerminationCheckbox = $('[name="configoption[4]"]');
 		let ssoCheckbox = $('[name="configoption[5]"]');
@@ -221,6 +230,7 @@
                     >{$plan->name}</option>
                 {/foreach}
             </select>
+            <input type="hidden" name="configoption[6]" value="">
         </td>
     </tr>
     </tbody>

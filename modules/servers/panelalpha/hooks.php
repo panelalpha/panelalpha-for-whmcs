@@ -26,6 +26,9 @@ add_hook('AdminAreaFooterOutput', 1, function ($params) {
     
     welcomeEmail.append(option);
 	welcomeEmail.val({$panelAlphaWelcomeEmail->id});
+	
+	const requireDomainInput = $('[name="showdomainops"');
+	requireDomainInput.parent().parent().parent().hide();
 </script>
 HTML;
         }
@@ -88,9 +91,9 @@ add_hook('AdminAreaHeadOutput', 1, function ($params) {
 
 add_hook('ProductEdit', 1, function($params) {
     $product = Product::findOrFail($params['pid']);
-    if ($product->servertype === 'panelalpha' && !$product->showdomainoptions) {
-        $product->showdomainoptions = true;
-        $product->save();
+
+    if ($product->servertype === 'panelalpha') {
+       $product->setShowDomainOption();
     }
 });
 

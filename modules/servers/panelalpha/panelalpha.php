@@ -6,6 +6,7 @@ use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\Module\Server\PanelAlpha\Models\Addon;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
+use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
 use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
@@ -123,11 +124,8 @@ function panelalpha_ConfigOptions($params): ?array
             UsageItem::setHiddenField($key, $value);
         }
 
-        foreach ($_POST['configoption'] as $key => $option) {
-            Capsule::table('tblproducts')
-                ->where('id', $_REQUEST['id'])
-                ->update(['configoption' . $key => $option]);
-        }
+        $product = Product::findOrFail($_REQUEST['id']);
+        $product->saveConfigOptions($_POST['configoption']);
         CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id']);
         EmailTemplate::createManualServiceTerminationEmailTemplate();
         EmailTemplate::createWelcomeEmailTemplate();
@@ -236,7 +234,11 @@ function panelalpha_CreateAccount(array $params): string
                 if ($automaticInstanceInstalling == 'on') {
                     $instanceName = Helper::getCustomField($params['serviceid'], 'Instance Name') ?? "My First Instance";
                     $theme = $params['configoption3'] ?? "";
-                    $connection->createInstance($params, $instanceName, $theme, $service->id, $user->id);
+                    $instance = $connection->createInstance($params, $instanceName, $theme, $service->id, $user->id);
+
+                    $hosting = Hosting::find($params['serviceid']);
+                    $hosting->domain = $instance->domain;
+                    $hosting->save();
                 }
             }
         }
