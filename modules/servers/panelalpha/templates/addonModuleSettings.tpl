@@ -36,15 +36,15 @@
         <td class="fieldlabel" width="20%">Package</td>
         <td class="fieldarea"><select id="select-package" name="panelalpha-package" class="form-control select-inline">
                 {foreach $packages as $package}
-                    <option value="{$package->id}"
-                            data-plugin_automation="{$MGLANG['aa']['addon']['module_settings']['plugin_automation'][{$package->plugin_automation}]}"
-                            data-theme_automation="{$MGLANG['aa']['addon']['module_settings']['theme_automation'][{$package->theme_automation}]}"
-                            data-plugins="{$package->pluginNames}"
-                            data-themes="{$package->themeNames}"
-                            {if $package->id == $selectedPackage->id}
+                    <option value="{$package['id']}"
+                            data-plugin_automation="{$MGLANG['aa']['addon']['module_settings']['plugin_automation'][{$package['plugin_automation']}]}"
+                            data-theme_automation="{$MGLANG['aa']['addon']['module_settings']['theme_automation'][{$package['theme_automation']}]}"
+                            data-plugins="{$package['pluginNames']}"
+                            data-themes="{$package['themeNames']}"
+                            {if $package['id'] == $selectedPackage['id']}
                                 selected
                             {/if}
-                    >{$package->name}</option>
+                    >{$package['name']}</option>
                 {/foreach}
             </select>
         </td>
@@ -59,14 +59,14 @@
         <td class="fieldlabel" width="20%">Package Configuration</td>
         <td><span class="package-settings">Plugin automation on assign:</span></td>
         <td width="70%"><span
-                    id="plugin_automation">{$MGLANG['aa']['addon']['module_settings']['plugin_automation'][{$selectedPackage->plugin_automation}]}</span>
+                    id="plugin_automation">{$MGLANG['aa']['addon']['module_settings']['plugin_automation'][{$selectedPackage['plugin_automation']}]}</span>
         </td>
     </tr>
     <tr>
         <td class="fieldlabel subtitle">Package configuration from PanelAlpha</td>
         <td><span class="package-settings">Theme automation on assign:</span></td>
         <td width="70%"><span
-                    id="theme_automation">{$MGLANG['aa']['addon']['module_settings']['theme_automation'][{{$selectedPackage->theme_automation}}]}</span>
+                    id="theme_automation">{$MGLANG['aa']['addon']['module_settings']['theme_automation'][{{$selectedPackage['theme_automation']}}]}</span>
         </td>
     </tr>
     <tr>

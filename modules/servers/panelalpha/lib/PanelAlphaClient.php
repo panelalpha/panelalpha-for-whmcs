@@ -9,10 +9,10 @@ use stdClass;
 
 class PanelAlphaClient
 {
-    protected $apiUrl;
-    protected $apiToken;
-    protected $secureMode;
-    protected $client;
+    protected string $apiUrl;
+    protected string $apiToken;
+    protected string $secureMode;
+    protected HttpClient $client;
 
     public function __construct(array $params)
     {
@@ -58,7 +58,7 @@ class PanelAlphaClient
     }
 
     /**
-     * @return mixed
+     * @return array
      * @throws \Exception
      * @throws GuzzleException
      */
@@ -74,7 +74,7 @@ class PanelAlphaClient
      * @return array|null
      * @throws GuzzleException
      */
-    public function getUser(string $email): ?stdClass
+    public function getUser(string $email): ?array
     {
         $endpoint = 'users/email?email=' . $email;
         $method = 'GET';
@@ -83,14 +83,14 @@ class PanelAlphaClient
 
 
     /**
-     * @param stdClass $user
+     * @param array $user
      * @param int $planId
      * @return stdClass|null
      * @throws GuzzleException
      */
-    public function createService(stdClass $user, int $planId): ?stdClass
+    public function createService(array $user, int $planId): ?array
     {
-        $endpoint = 'users/' . $user->id . '/services';
+        $endpoint = 'users/' . $user['id'] . '/services';
         $method = 'POST';
         $data = [
             'plan_id' => $planId,
@@ -100,21 +100,20 @@ class PanelAlphaClient
     }
 
     /**
-     * @param array $user
-     * @param array $params
-     * @return stdClass
+     * @param array $client
+     * @return array|null
      * @throws GuzzleException
      */
-    public function createUser(array $user, array $params): stdClass
+    public function createUser(array $client): ?array
     {
         $endpoint = 'users';
         $method = 'POST';
         $data = [
-            'first_name' => $user['firstname'],
-            'last_name' => $user['lastname'],
-            'company_name' => $user['companyname'] ?? "",
-            'email' => $user['email'],
-            'password' => $params['password']
+            'first_name' => $client['firstname'],
+            'last_name' => $client['lastname'],
+            'company_name' => $client['companyname'] ?? "",
+            'email' => $client['email'],
+            'password' => Helper::generateRandomString(8)
         ];
         return $this->request($method, $endpoint, $data);
     }
@@ -125,10 +124,10 @@ class PanelAlphaClient
      * @param string $theme
      * @param int $serviceId
      * @param int $userId
-     * @return stdClass
+     * @return array|null
      * @throws GuzzleException
      */
-    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId): ?stdClass
+    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId): ?array
     {
         $endpoint = 'instances';
         $method = 'POST';
@@ -145,10 +144,10 @@ class PanelAlphaClient
 
     /**
      * @param int $serviceId
-     * @return mixed
+     * @return array|null
      * @throws GuzzleException
      */
-    public function getInstancesAssignedToService(int $serviceId)
+    public function getInstancesAssignedToService(int $serviceId): ?array
     {
         $endpoint = 'services/' . $serviceId . '/instances';
         $method = 'GET';
@@ -156,10 +155,10 @@ class PanelAlphaClient
     }
 
     /**
-     * @return mixed
+     * @return array|null
      * @throws GuzzleException
      */
-    public function getInstancesServices()
+    public function getInstancesServices(): array
     {
         $endpoint = 'services/instances';
         $method = 'GET';
@@ -301,11 +300,11 @@ class PanelAlphaClient
      * @param string $method
      * @param string $endpoint
      * @param array $data
-     * @return mixed
+     * @return array|null
      * @throws GuzzleException
      * @throws \Exception
      */
-    protected function request(string $method, string $endpoint, array $data = [])
+    protected function request(string $method, string $endpoint, array $data = []): ?array
     {
         if (!$this->apiUrl) {
             throw new \Exception('Api url not set.');
@@ -328,6 +327,6 @@ class PanelAlphaClient
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
-        return $response->data;
+        return $response['data'];
     }
 }

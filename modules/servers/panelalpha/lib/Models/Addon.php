@@ -41,11 +41,15 @@ class Addon extends Model
             ->value('value');
     }
 
-    public function setSelectedPackage(array $packages)
+    /**
+     * @param array $packages
+     * @return void
+     */
+    public function setSelectedPackage(array $packages): void
     {
         $selectedPackage = null;
         foreach ($packages as $package) {
-            if ($package->id == $this->packageId) {
+            if ($package['id'] == $this->packageId) {
                 $selectedPackage = $package;
                 break;
             }
@@ -53,25 +57,34 @@ class Addon extends Model
         if (!$selectedPackage) {
             $selectedPackage = $packages[0];
         }
-        $this->selectedPackage = $selectedPackage;;
+        $this->selectedPackage = $selectedPackage;
     }
 
+    /**
+     * @return mixed|null
+     */
     public function getSelectedPackage()
     {
         return $this->selectedPackage;
     }
 
+    /**
+     * @return array
+     */
     public function getSelectedPackagePlugins(): array
     {
         return array_map(function ($plugin) {
-            return $plugin->name;
-        }, $this->selectedPackage->plugins ?? []);
+            return $plugin['name'];
+        }, $this->selectedPackage['plugins'] ?? []);
     }
 
+    /**
+     * @return array
+     */
     public function getSelectedPackageThemes(): array
     {
         return array_map(function ($theme) {
-            return $theme->name;
-        }, $this->selectedPackage->themes ?? []);
+            return $theme['name'];
+        }, $this->selectedPackage['themes'] ?? []);
     }
 }

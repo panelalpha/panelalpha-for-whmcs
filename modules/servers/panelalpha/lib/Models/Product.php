@@ -112,7 +112,10 @@ class Product extends Model
         return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
     }
 
-    public function setConfigOptionsEnabledWhenProductCreated()
+    /**
+     * @return void
+     */
+    public function setConfigOptionsEnabledWhenProductCreated(): void
     {
         if (!$this->configoption1) {
             $this->configoption2 = 'on';
@@ -121,11 +124,15 @@ class Product extends Model
         }
     }
 
-    public function getPlanAssignedToProduct($plans)
+    /**
+     * @param $plans
+     * @return array|null
+     */
+    public function getPlanAssignedToProduct($plans): ?array
     {
         $selectedPlan = null;
         foreach ($plans as $plan) {
-            if ($plan->id === (int)$this->configoption1) {
+            if ($plan['id'] === (int)$this->configoption1) {
                 $selectedPlan = $plan;
             }
         }

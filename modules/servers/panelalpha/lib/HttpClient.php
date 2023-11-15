@@ -7,10 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class HttpClient
 {
-    protected  $client;
-    protected  $method;
-    protected  $url;
-    protected $options;
+    protected Client $client;
 
     public function __construct()
     {
@@ -32,6 +29,6 @@ class HttpClient
             }
             throw new \Exception($e->getMessage());
         }
-        return json_decode($response->getBody()->getContents());
+        return json_decode($response->getBody()->getContents(), true);
     }
 }

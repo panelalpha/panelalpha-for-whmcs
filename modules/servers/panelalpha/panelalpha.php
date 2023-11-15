@@ -97,10 +97,10 @@ function panelalpha_ConfigOptions($params): ?array
 
             $plans = array_map(function ($plan) {
                 $accountConfig = "";
-                foreach ($plan->account_config as $key => $value) {
+                foreach ($plan['account_config'] as $key => $value) {
                     $accountConfig .= $key . ":" . $value . ',';
                 }
-                $plan->server_config = substr($accountConfig, 0, -1) ?? "";
+                $plan['server_config'] = substr($accountConfig, 0, -1) ?? "";
                 return $plan;
             }, $plans);
 
@@ -149,13 +149,13 @@ function panelalpha_ConfigOptions($params): ?array
             $packages = $connection->getPackages();
             $packages = array_map(function ($package) {
                 $themeNames = array_map(function ($theme) {
-                    return $theme->name;
-                }, $package->themes);
+                    return $theme['name'];
+                }, $package['themes']);
                 $pluginNames = array_map(function ($plugin) {
-                    return $plugin->name;
-                }, $package->plugins);
-                $package->themeNames = !empty($themeNames) ? implode("<br>", $themeNames) : "<span style='color: grey;'>No Themes</span>";
-                $package->pluginNames = !empty($pluginNames) ? implode("<br>", $pluginNames) : "<span style='color: grey;'>No Plugins</span>";
+                    return $plugin['name'];
+                }, $package['plugins']);
+                $package['themeNames'] = !empty($themeNames) ? implode("<br>", $themeNames) : "<span style='color: grey;'>No Themes</span>";
+                $package['pluginNames'] = !empty($pluginNames) ? implode("<br>", $pluginNames) : "<span style='color: grey;'>No Plugins</span>";
                 return $package;
             }, $packages);
 
@@ -220,24 +220,24 @@ function panelalpha_CreateAccount(array $params): string
         } else {
             $user = $connection->getUser($params['clientsdetails']['email']);
             if (!$user) {
-                $user = $connection->createUser($params['clientsdetails'], $params);
+                $user = $connection->createUser($params['clientsdetails']);
             }
 
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
             if (!$panelAlphaServiceId) {
                 $planId = $params['configoption1'];
                 $service = $connection->createService($user, $planId);
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service->id);
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user->id);
+                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service['id']);
+                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
 
                 $automaticInstanceInstalling = $params['configoption2'];
                 if ($automaticInstanceInstalling == 'on') {
                     $instanceName = Helper::getCustomField($params['serviceid'], 'Instance Name') ?? "My First Instance";
                     $theme = $params['configoption3'] ?? "";
-                    $instance = $connection->createInstance($params, $instanceName, $theme, $service->id, $user->id);
+                    $instance = $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id']);
 
                     $hosting = Hosting::find($params['serviceid']);
-                    $hosting->domain = $instance->domain;
+                    $hosting->domain = $instance['domain'];
                     $hosting->save();
                 }
             }
@@ -355,7 +355,7 @@ function panelalpha_TerminateAccount(array $params): string
                 return 'The account must be deleted manually';
             } else {
                 $instances = $connection->getInstancesAssignedToService($params['customfields']['Service ID']);
-                foreach ($instances->instances as $instanceId) {
+                foreach ($instances['instances'] as $instanceId) {
                     $connection->deleteInstance($instanceId);
                 }
                 $connection->deleteService($params['customfields']['Service ID']);

@@ -206,28 +206,28 @@
         <td class="fieldarea">
             <select id="select-plan" name="configoption[1]" class="form-control select-inline">
                 {foreach $plans as $plan}
-                    <option value="{$plan->id}"
-                            data-instance_limit="{$plan->instance_limit}"
-                            data-onboarding_name="{$MGLANG['aa']['product']['onboarding']['name'][{$plan->config->onboarding->method}]}"
-                            data-onboarding_description="{$MGLANG['aa']['product']['onboarding']['description'][{$plan->config->onboarding->method}]}"
-                            data-server_type="{$plan->server_type}"
-                            data-server_type_name="{$MGLANG['aa']['product']['server'][{$plan->server_type}]}"
-                            data-server_group="{$plan->server_group_name}"
-                            data-server_assign_rule="{$MGLANG['aa']['product']['assign_rule']['name'][{$plan->server_assign_rule}]}"
-                            data-server_assign_rule_description="{$MGLANG['aa']['product']['assign_rule']['description'][{$plan->server_assign_rule}]}"
-                            data-account_config="{$plan->server_config}"
-                            {if $plan->dns_server_type}
-                                data-dns_server="{$MGLANG['aa']['product']['dns_server'][{$plan->dns_server_type}]} ({$plan->dns_server_name})"
-                                data-dns_server_name="{$plan->dns_server_type}"
+                    <option value="{$plan['id']}"
+                            data-instance_limit="{$plan['instance_limit']}"
+                            data-onboarding_name="{$MGLANG['aa']['product']['onboarding']['name'][{$plan['config']['onboarding']['method']}]}"
+                            data-onboarding_description="{$MGLANG['aa']['product']['onboarding']['description'][{$plan['config']['onboarding']['method']}]}"
+                            data-server_type="{$plan['server_type']}"
+                            data-server_type_name="{$MGLANG['aa']['product']['server'][{$plan['server_type']}]}"
+                            data-server_group="{$plan['server_group_name']}"
+                            data-server_assign_rule="{$MGLANG['aa']['product']['assign_rule']['name'][{$plan['server_assign_rule']}]}"
+                            data-server_assign_rule_description="{$MGLANG['aa']['product']['assign_rule']['description'][{$plan['server_assign_rule']}]}"
+                            data-account_config="{$plan['server_config']}"
+                            {if $plan['dns_server_type']}
+                                data-dns_server="{$MGLANG['aa']['product']['dns_server'][{$plan['dns_server_type']}]} ({$plan['dns_server_name']})"
+                                data-dns_server_name="{$plan['dns_server_type']}"
                             {/if}
-                            {if $plan->email_server_type}
-                                data-email_server="{$MGLANG['aa']['product']['email_server'][{$plan->email_server_type}]} ({$plan->email_server_name})"
-                                data-email_server_name="{$plan->email_server_type}"
+                            {if $plan['email_server_type']}
+                                data-email_server="{$MGLANG['aa']['product']['email_server'][{$plan['email_server_type']}]} ({$plan['email_server_name']})"
+                                data-email_server_name="{$plan['email_server_type']}"
                             {/if}
-                            {if $plan->id == $product->configoption1}
+                            {if $plan['id'] == $product->configoption1}
                                 selected
                             {/if}
-                    >{$plan->name}</option>
+                    >{$plan['name']}</option>
                 {/foreach}
             </select>
             <input type="hidden" name="configoption[6]" value="">
@@ -242,16 +242,16 @@
         <td class="fieldlabel" width="20%">Plan Settings</td>
         <td>
             <span class="plan-settings">Instances limit: </span>
-            <span id="instanceLimit">{$selectedPlan->instance_limit}</span>
+            <span id="instanceLimit">{$selectedPlan['instance_limit']}</span>
         </td>
     </tr>
     <tr>
         <td class="fieldlabel subtitle">Plan configuration from PanelAlpha</td>
         <td>
             <span class="plan-settings">Onboarding: </span>
-            <span id="onboarding-name">{$MGLANG['aa']['product']['onboarding']['name'][{$selectedPlan->config->onboarding->method}]}</span>
+            <span id="onboarding-name">{$MGLANG['aa']['product']['onboarding']['name'][{$selectedPlan['config']['onboarding']['method']}]}</span>
             <span id="onboarding-description" style="margin-left: 4px;" data-toggle="tooltip" data-placement="right"
-                  title="{$MGLANG['aa']['product']['onboarding']['description'][{$selectedPlan->config->onboarding->method}]}">
+                  title="{$MGLANG['aa']['product']['onboarding']['description'][{$selectedPlan['config']['onboarding']['method']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
@@ -262,23 +262,23 @@
         <td>
             <span class="plan-settings">Server Type: </span>
             <img id="server-icon" style="padding-bottom: 2px; height: 22px;"
-                 src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan->server_type}.svg">
-            <span id="server-type"> {$MGLANG['aa']['product']['server'][{$selectedPlan->server_type}]}</span>
+                 src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg">
+            <span id="server-type"> {$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}</span>
         </td>
     </tr>
 
-    {if $selectedPlan->server_group_name}
+    {if $selectedPlan['server_group_name']}
         <tr>
             <td></td>
             <td>
                 <span class="plan-settings">Server Group: </span>
-                <span id="server-group">{$selectedPlan->server_group_name}</span>
+                <span id="server-group">{$selectedPlan['server_group_name']}</span>
                 <span> (Assign Rule:
-                <span id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan->server_assign_rule}]}</span>)
+                <span id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)
             </span>
                 <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
                       data-placement="right"
-                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan->server_assign_rule}]}">
+                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
@@ -291,10 +291,10 @@
                 <span class="plan-settings">Server Group: </span>
                 <span id="server-group">All Servers</span>
                 <span> (Assign Rule: <span
-                            id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan->server_assign_rule}]}</span>)</span>
+                            id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)</span>
                 <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
                       data-placement="right"
-                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan->server_assign_rule}]}">
+                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
@@ -302,7 +302,7 @@
         </tr>
     {/if}
 
-    {foreach $selectedPlan->account_config as $key=>$value}
+    {foreach $selectedPlan['account_config'] as $key=>$value}
         <tr class="account-config">
             <td></td>
             <td>
@@ -321,32 +321,32 @@
         <td></td>
         <td>
             <span class="plan-settings">DNS Server:</span>
-            {if $selectedPlan->dns_server_type}
+            {if $selectedPlan['dns_server_type']}
                 <img id="dns-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan->dns_server_type}.svg"
+                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['dns_server_type']}.svg"
                      style="padding-bottom: 2px; height: 22px;">
-                <span id="dns-server">{$MGLANG['aa']['product']['dns_server'][{$selectedPlan->dns_server_type}]} ({$selectedPlan->dns_server_name})</span>
+                <span id="dns-server">{$MGLANG['aa']['product']['dns_server'][{$selectedPlan['dns_server_type']}]} ({$selectedPlan['dns_server_name']})</span>
             {else}
                 <img id="dns-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan->server_type}.svg"
+                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
                      style="padding-bottom: 2px; height: 22px;">
-                <span id="dns-server">{$MGLANG['aa']['product']['server'][{$selectedPlan->server_type}]}'s DNS Server</span>
+                <span id="dns-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s DNS Server</span>
             {/if}
         </td>
     </tr>
     <tr>
         <td></td>
         <td><span class="plan-settings">Email Server:</span>
-            {if $selectedPlan->email_server_type}
+            {if $selectedPlan['email_server_type']}
                 <img id="email-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan->email_server_type}.svg"
+                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
                      style="padding-bottom: 2px; height: 22px;">
-                <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan->email_server_type}]} ({$selectedPlan->email_server_name})</span>
+                <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
             {else}
                 <img id="email-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan->server_type}.svg"
+                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
                      style="padding-bottom: 2px; height: 22px;">
-                <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan->server_type}]}'s Email Server</span>
+                <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s Email Server</span>
             {/if}
         </td>
     </tr>
