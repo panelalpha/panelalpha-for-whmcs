@@ -11,7 +11,7 @@ class PanelAlphaClient
 {
     protected string $apiUrl;
     protected string $apiToken;
-    protected string $secureMode;
+    protected bool $secureMode;
     protected HttpClient $client;
 
     public function __construct(array $params)
@@ -25,7 +25,14 @@ class PanelAlphaClient
             $this->apiUrl = trim($protocol . '://' . $hostname, '/');
         }
 
-        $this->secureMode = $params['serversecure'] ?? $params['secure'];
+        if (isset($params['serversecure']) && $params['serversecure'] === 'on') {
+            $this->secureMode = true;
+        } else if (isset($params['secure']) && $params['secure'] === 'on') {
+            $this->secureMode = true;
+        } else {
+            $this->secureMode = false;
+        }
+
         $this->apiToken = $params['serveraccesshash'] ?? $params['accesshash'];
         $this->client = new HttpClient();
     }
