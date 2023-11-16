@@ -123,9 +123,10 @@ function panelalpha_ConfigOptions($params): ?array
         foreach ($_POST['metric'] as $key => $value) {
             UsageItem::setHiddenField($key, $value);
         }
-
-        $product = Product::findOrFail($_REQUEST['id']);
-        $product->saveConfigOptions($_POST['configoption']);
+        if (!empty($_POST['configoption'])) {
+            $product = Product::findOrFail($_REQUEST['id']);
+            $product->saveConfigOptions($_POST['configoption']);
+        }
         CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id']);
         EmailTemplate::createManualServiceTerminationEmailTemplate();
         EmailTemplate::createWelcomeEmailTemplate();
