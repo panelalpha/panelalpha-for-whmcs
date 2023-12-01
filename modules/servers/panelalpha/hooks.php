@@ -5,6 +5,7 @@ use WHMCS\Module\Server\PanelAlpha\Helper;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
 use WHMCS\Module\Server\PanelAlpha\Models\Product;
+use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
@@ -95,6 +96,16 @@ add_hook('ProductEdit', 1, function($params) {
     if ($product->servertype === 'panelalpha') {
        $product->setShowDomainOption();
     }
+});
+
+add_hook('ServerAdd', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    $server->setDefaultPort();
+});
+
+add_hook('ServerEdit', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    $server->setDefaultPort();
 });
 
 add_hook('ClientAreaProductDetails', 1, function($params) {
