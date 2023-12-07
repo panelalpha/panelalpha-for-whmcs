@@ -46,6 +46,8 @@ function panelalpha_MetaData(): array
         'DisplayName' => 'PanelAlpha',
         'APIVersion' => '1.1',
         'RequiresServer' => true,
+        'DefaultNonSSLPort' => '8443',
+        'DefaultSSLPort' => '8443',
         'ListAccountsUniqueIdentifierField' => 'customfield.Service ID'
     ];
 }
@@ -224,10 +226,19 @@ function panelalpha_CreateAccount(array $params): string
                 $user = $connection->createUser($params['clientsdetails']);
             }
 
+            if (!$user) {
+                throw new Exception('No user from PanelAlpha');
+            }
+
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
             if (!$panelAlphaServiceId) {
                 $planId = $params['configoption1'];
                 $service = $connection->createService($user, $planId);
+
+                if (!$service) {
+                    throw new Exception('No service from PanelAlpha');
+                }
+
                 Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service['id']);
                 Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
 
@@ -429,12 +440,11 @@ function panelalpha_ChangePackage(array $params): string
  *
  * @param array $params
  * @return array
- * @throws GuzzleException
  */
 function panelalpha_TestConnection(array $params): array
 {
-    if (empty($params['serverport'])) {
-        $params['serverport'] = 8443;
+    if (!empty($params['serverusername'])) {
+        $params['serverhttpprefix'] = $params['serverusername'];
     }
 
     try {

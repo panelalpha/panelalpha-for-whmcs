@@ -90,25 +90,25 @@ add_hook('AdminAreaHeadOutput', 1, function ($params) {
     return '<script type="text/javascript"> ' . file_get_contents($jsFile) . '</script>';
 });
 
-add_hook('ProductEdit', 1, function($params) {
+add_hook('ProductEdit', 1, function ($params) {
     $product = Product::findOrFail($params['pid']);
 
     if ($product->servertype === 'panelalpha') {
-       $product->setShowDomainOption();
+        $product->setShowDomainOption();
     }
 });
 
 add_hook('ServerAdd', 1, function ($params) {
     $server = Server::findOrFail($params['serverid']);
-    $server->setDefaultPort();
+    $server->setHostname();
 });
 
 add_hook('ServerEdit', 1, function ($params) {
     $server = Server::findOrFail($params['serverid']);
-    $server->setDefaultPort();
+    $server->setHostname();
 });
 
-add_hook('ClientAreaProductDetails', 1, function($params) {
+add_hook('ClientAreaProductDetails', 1, function ($params) {
     if ($_REQUEST['sso'] === 'yes') {
         $service = Service::findOrFail($_REQUEST['id']);
         $server = $service->product->getServer();
@@ -116,16 +116,17 @@ add_hook('ClientAreaProductDetails', 1, function($params) {
 
         $client = new Client();
 
-        $hostname = $server['port'] ? $server['hostname'] . ':' . $server['port'] : $server['hostname'];
+        $hostname = isset($server['port'])
+            ? $server['hostname'] . ':' . $server['port']
+            : $server['hostname'] . ':8443';
 
-        $promise = $client->postAsync('https://' . $hostname . '/api/admin/users/' . $userId . '/sso-token', [
+        $promise = $client->postAsync($hostname . '/api/admin/users/' . $userId . '/sso-token', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $server['accesshash']
             ],
             'verify' => $server['secure'] === 'on'
         ])->then(function ($response) {
-            $data = json_decode($response->getBody()->getContents());
-            return $data->data;
+            return json_decode($response->getBody()->getContents())->data;
         });
         $data = $promise->wait();
         header("Location: {$data->url}/sso-login?token={$data->token}");

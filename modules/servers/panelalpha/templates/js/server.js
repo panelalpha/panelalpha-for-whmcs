@@ -42,6 +42,8 @@ function panelalpha_showFields() {
 	$("#addPassword").parent().parent().show();
 	$("#inputUsername").parent().parent().show();
 	$("#inputPassword").parent().parent().show();
+
+	$("#trPort").show();
 }
 
 function panelalpha_hideFields() {
@@ -51,14 +53,56 @@ function panelalpha_hideFields() {
 	$("#inputPassword").parent().parent().hide();
 }
 
+function panelalpha_showProtocolSelect()
+{
+	const hostnameInput = $('#inputHostname');
+	let value = hostnameInput.val();
+	const protocol = value.split(':')[0];
+	console.log(protocol);
+
+
+	const newRow = $('<tr>').attr('id','trProtocol');
+	const labelTd = $('<td>').addClass('fieldlabel').text('Protocol');
+	const areaTd = $('<td>').addClass('fieldarea');
+
+	const selectElement = $('<select>');
+	if (protocol === 'https') {
+		selectElement.append($('<option>').text('http').val('http'));
+		selectElement.append($('<option>').text('https').val('https').prop('selected', true));
+	} else {
+		selectElement.append($('<option>').text('http').val('http'));
+		selectElement.append($('<option>').text('https').val('https'));
+	}
+
+	selectElement.addClass('form-control');
+	selectElement.addClass('select-inline');
+	selectElement.attr('name', 'username');
+
+	areaTd.append(selectElement);
+	newRow.append(labelTd);
+	newRow.append(areaTd);
+
+	const secureCheckbox = $("input[name='accesshash']");
+	secureCheckbox.parent().parent().after(newRow)
+}
+
+function panelalpha_clearHostname()
+{
+	const hostnameInput = $('#inputHostname');
+	let value = hostnameInput.val();
+	hostnameInput.val(value.replace(/^https?:\/\//, ''))
+}
+
 $(document).ready(function () {
 	let selectServerType = $("#inputServerType").val();
 	let selectServerTypeAdvanced = $("#addType").val();
-
+	
 	panelalpha_accesshash = $("textarea[name='accesshash']").val();
 	if (selectServerType == "panelalpha" || selectServerTypeAdvanced == "panelalpha") {
-		panelalpha_hideFields()
-		panelalpha_addInput()
+		panelalpha_hideFields();
+		panelalpha_addInput();
+		panelalpha_showProtocolSelect();
+		panelalpha_clearHostname()
 	}
 
 	$('#newToken').on('change', function () {
@@ -70,13 +114,14 @@ $(document).ready(function () {
 		selectServerTypeAdvanced = $(this).val();
 
 		if (panelalpha_InputAdded == true && selectServerTypeAdvanced != "panelalpha") {
-			//$('textarea#newHash').parent().parent().show();
 			panelalpha_showFields();
 			panelalpha_removeInput();
+			$('#trProtocol').hide();
 		} else if (!panelalpha_InputAdded && selectServerTypeAdvanced == "panelalpha") {
-			//$('textarea#newHash').parent().parent().hide();
 			panelalpha_hideFields();
 			panelalpha_addInput();
+			panelalpha_showProtocolSelect();
+			panelalpha_clearHostname();
 		}
 
 	});
@@ -87,11 +132,13 @@ $(document).ready(function () {
 		if (panelalpha_InputAdded == true && selectServerType != "panelalpha") {
 			panelalpha_showFields();
 			panelalpha_removeInput();
+			$('#trProtocol').hide();
 		} else if (!panelalpha_InputAdded && selectServerType == "panelalpha") {
 			panelalpha_hideFields();
 			panelalpha_addInput();
+			panelalpha_showProtocolSelect()
+			panelalpha_clearHostname();
 		}
-
 	});
 });
 

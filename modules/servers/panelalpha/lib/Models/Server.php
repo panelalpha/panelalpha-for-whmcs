@@ -9,6 +9,8 @@ use \Illuminate\Database\Eloquent\Model;
  * @method static findOrFail(int $serverid)
  * @property string $type
  * @property int $port
+ * @property string $hostname
+ * @property string $username
  */
 class Server extends Model
 {
@@ -55,14 +57,10 @@ class Server extends Model
         );
     }
 
-    /**
-     * @return void
-     */
-    public function setDefaultPort(): void
+    public function setHostname()
     {
-        if ($this->type === 'panelalpha' && !$this->port) {
-            $this->port = 8443;
-            $this->save();
-        }
+        $this->hostname = $this->username . '://' . $this->hostname;
+        $this->username = "";
+        $this->save();
     }
 }

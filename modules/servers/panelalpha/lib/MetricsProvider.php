@@ -3,6 +3,7 @@
 namespace WHMCS\Module\Server\PanelAlpha;
 
 use GuzzleHttp\Exception\GuzzleException;
+use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\UsageBilling\Contracts\Metrics\MetricInterface;
 use WHMCS\UsageBilling\Contracts\Metrics\ProviderInterface;
 use WHMCS\UsageBilling\Metrics\Metric;
@@ -17,7 +18,6 @@ class MetricsProvider implements ProviderInterface
     public function __construct($moduleParams)
     {
         $this->moduleParams = $moduleParams;
-
     }
 
     public function metrics()
@@ -32,9 +32,14 @@ class MetricsProvider implements ProviderInterface
         ];
     }
 
-    public function usage()
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function usage(): array
     {
-        $connection = new PanelAlphaClient($this->moduleParams);
+        $server = Server::findOrFail($this->moduleParams['serverid']);
+        $connection = new PanelAlphaClient($server->toArray());
         $services = $connection->getInstancesServices();
         $usage = [];
         foreach ($services as $id => $count) {
@@ -50,18 +55,19 @@ class MetricsProvider implements ProviderInterface
     /**
      * @param $panelalphaServiceId
      * @return array
-     * @throws GuzzleException
+     * @throws \Exception
      */
     public function tenantUsage($panelalphaServiceId): array
     {
         if (!$panelalphaServiceId) {
             return [];
         }
-        $connection = new PanelAlphaClient($this->moduleParams);
+        $server = Server::findOrFail($this->moduleParams['serverid']);
+        $connection = new PanelAlphaClient($server->toArray());
         $data = $connection->getInstancesAssignedToService($panelalphaServiceId);
 
         $data = [
-            'active_instances' => $data->active_instances
+            'active_instances' => $data['active_instances']
         ];
 
         return $this->wrapUserData($data);
