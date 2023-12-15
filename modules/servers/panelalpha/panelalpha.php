@@ -451,8 +451,7 @@ function panelalpha_TestConnection(array $params): array
             'panelalpha',
             __FUNCTION__,
             $params,
-            $e->getMessage(),
-            $e->getTraceAsString()
+            $e->getMessage() . "\n" .    $e->getTraceAsString(),
         );
 
         $success = false;
