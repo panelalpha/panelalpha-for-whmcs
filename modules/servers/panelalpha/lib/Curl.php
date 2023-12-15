@@ -18,7 +18,6 @@ class Curl
     /** @var array */
     public $defaultOptions = [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HEADER => true,
         CURLINFO_HEADER_OUT => true,
     ];
@@ -32,6 +31,14 @@ class Curl
     public function __destruct()
     {
         curl_close($this->handle);
+    }
+
+    /**
+     * @param int $seconds
+     * @return void
+     */
+    public function setTimeout($seconds) {
+        $this->defaultOptions[CURLOPT_CONNECTTIMEOUT] = $seconds;
     }
 
     /**
@@ -133,27 +140,5 @@ class Curl
         $this->lastCall['responseHeaders'] = substr($output, 0, $info['header_size']);
 
         return $this->lastCall['response'];
-    }
-
-    /**
-     * @param string $action
-     * @return void
-     */
-    public function setAction(string $action): void
-    {
-        $this->action = $action;
-     }
-
-    /**
-     * @return void
-     */
-    public function log(): void
-    {
-        logModuleCall(
-            'panelalpha',
-            $this->action,
-            $this->lastCall['requestHeaders'] . $this->lastCall['request'],
-            $this->lastCall['responseHeaders'] . $this->lastCall['response']
-        );
     }
 }

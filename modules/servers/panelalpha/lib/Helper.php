@@ -6,7 +6,6 @@ use Exception;
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomFieldValue;
-use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
 
 class Helper

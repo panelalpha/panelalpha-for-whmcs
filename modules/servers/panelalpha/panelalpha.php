@@ -11,8 +11,8 @@ use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
 use WHMCS\Module\Server\PanelAlpha\Models\UsageItem;
-use WHMCS\Module\Server\PanelAlpha\PanelAlphaClient;
-use WHMCS\Module\Server\PanelAlpha\LocalApi;
+use WHMCS\Module\Server\PanelAlpha\Apis\PanelAlphaApi;
+use WHMCS\Module\Server\PanelAlpha\Apis\LocalApi;
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\MetricsProvider;
 use WHMCS\Module\Server\PanelAlpha\View;
@@ -91,8 +91,7 @@ function panelalpha_ConfigOptions($params): ?array
                 throw new Exception('No Server Group');
             }
             $server = $serverGroup->getFirstServer();
-            $connection = new PanelAlphaClient($server);
-            $connection->validate();
+            $connection = new PanelAlphaApi($server);
 
             $plans = $connection->getPlans();
             $selectedPlan = $product->getPlanAssignedToProduct($plans);
@@ -147,8 +146,7 @@ function panelalpha_ConfigOptions($params): ?array
                 die();
             }
 
-            $connection = new PanelAlphaClient($server);
-            $connection->validate();
+            $connection = new PanelAlphaApi($server);
             $packages = $connection->getPackages();
             $packages = array_map(function ($package) {
                 $themeNames = array_map(function ($theme) {
@@ -214,8 +212,7 @@ function panelalpha_CreateAccount(array $params): string
 {
     try {
         $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaClient($server);
-        $connection->validate();
+        $connection = new PanelAlphaApi($server);
 
         if ($params['addonId']) {
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
@@ -282,8 +279,7 @@ function panelalpha_SuspendAccount(array $params): string
             throw new Exception('Suspend for addons is not supported.');
         } else {
             $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaClient($server);
-            $connection->validate();
+            $connection = new PanelAlphaApi($server);
             $connection->suspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
         }
     } catch (Exception $e) {
@@ -315,8 +311,7 @@ function panelalpha_UnsuspendAccount(array $params): string
             throw new Exception('Unsuspend for addons is not supported.');
         } else {
             $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaClient($server);
-            $connection->validate();
+            $connection = new PanelAlphaApi($server);
             $connection->unsuspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
         }
     } catch (Exception $e) {
@@ -346,8 +341,7 @@ function panelalpha_TerminateAccount(array $params): string
 {
     try {
         $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaClient($server);
-        $connection->validate();
+        $connection = new PanelAlphaApi($server);
 
         if ($params['addonId']) {
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
@@ -415,8 +409,7 @@ function panelalpha_ChangePackage(array $params): string
             $newPlanId = $upgradeProduct->configoption1;
 
             $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaClient($server);
-            $connection->validate();
+            $connection = new PanelAlphaApi($server);
             $connection->changePlan($panelAlphaUserId, $panelAlphaServiceId, $newPlanId);
         }
     } catch (Exception $e) {
@@ -448,8 +441,7 @@ function panelalpha_TestConnection(array $params): array
     }
 
     try {
-        $connection = new PanelAlphaClient($params);
-        $connection->validate();
+        $connection = new PanelAlphaApi($params);
         $connection->testConnection();
 
         $success = true;

@@ -2,7 +2,7 @@
 
 namespace WHMCS\Module\Server\PanelAlpha;
 
-use GuzzleHttp\Exception\GuzzleException;
+use WHMCS\Module\Server\PanelAlpha\Apis\PanelAlphaApi;
 use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\UsageBilling\Contracts\Metrics\MetricInterface;
 use WHMCS\UsageBilling\Contracts\Metrics\ProviderInterface;
@@ -39,7 +39,7 @@ class MetricsProvider implements ProviderInterface
     public function usage(): array
     {
         $server = Server::findOrFail($this->moduleParams['serverid']);
-        $connection = new PanelAlphaClient($server->toArray());
+        $connection = new PanelAlphaApi($server->toArray());
         $services = $connection->getInstancesServices();
         $usage = [];
         foreach ($services as $id => $count) {
@@ -63,7 +63,7 @@ class MetricsProvider implements ProviderInterface
             return [];
         }
         $server = Server::findOrFail($this->moduleParams['serverid']);
-        $connection = new PanelAlphaClient($server->toArray());
+        $connection = new PanelAlphaApi($server->toArray());
         $data = $connection->getInstancesAssignedToService($panelalphaServiceId);
 
         $data = [
