@@ -95,6 +95,7 @@
 		let automaticCheckbox = $('[name="configoption[2]"]');
 		let manualTerminationCheckbox = $('[name="configoption[4]"]');
 		let ssoCheckbox = $('[name="configoption[5]"]');
+
 		let activeInstancesMetricCheckbox = $('[name="metric[active_instances]"');
 		let activeStatus;
 		if (activeInstancesMetricCheckbox.val() == 1) {
@@ -102,6 +103,15 @@
 		} else {
 			activeStatus = 'on'
 		}
+
+        let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
+        let activeRemoteBackupsSizeStatus;
+        if (remoteBackupsSizeMetricCheckbox.val() == 1) {
+            activeRemoteBackupsSizeStatus = ''
+        } else {
+            activeRemoteBackupsSizeStatus = 'on'
+        }
+
 
 		$('#automatic').bootstrapSwitch({
 			size: 'small',
@@ -139,6 +149,16 @@
 			},
 		})
 
+        $('#metric_remote_backups_size').bootstrapSwitch({
+            size: 'small',
+            onColor: 'success',
+            state: activeRemoteBackupsSizeStatus,
+            onInit: () => {
+                this.value = activeRemoteBackupsSizeStatus
+            },
+        })
+
+
 		$('#automatic').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
 				automaticCheckbox.val('on')
@@ -155,6 +175,7 @@
 				manualTerminationCheckbox.val('')
 			}
 		});
+
 		$('#sso').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
 				ssoCheckbox.val('on')
@@ -162,14 +183,22 @@
 				ssoCheckbox.val('')
 			}
 		});
+
 		$('#metric_active_instances').on('switchChange.bootstrapSwitch', function (event, state) {
-			console.log(state)
 			if (state) {
 				activeInstancesMetricCheckbox.val(0)
 			} else {
 				activeInstancesMetricCheckbox.val(1)
 			}
 		});
+
+        $('#metric_remote_backups_size').on('switchChange.bootstrapSwitch', function (event, state) {
+            if (state) {
+                remoteBackupsSizeMetricCheckbox.val(0)
+            } else {
+                remoteBackupsSizeMetricCheckbox.val(1)
+            }
+        });
 
 
 		$('#select-default-theme').select2({

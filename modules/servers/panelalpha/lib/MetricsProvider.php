@@ -9,6 +9,7 @@ use WHMCS\UsageBilling\Contracts\Metrics\ProviderInterface;
 use WHMCS\UsageBilling\Metrics\Metric;
 use WHMCS\UsageBilling\Metrics\Units\Accounts;
 use WHMCS\UsageBilling\Metrics\Units\WholeNumber;
+use WHMCS\UsageBilling\Metrics\Units\GigaBytes;
 use WHMCS\UsageBilling\Metrics\Usage;
 
 class MetricsProvider implements ProviderInterface
@@ -28,6 +29,12 @@ class MetricsProvider implements ProviderInterface
                 'Active Instances',
                 MetricInterface::TYPE_SNAPSHOT,
                 new WholeNumber('active-instances')
+            ),
+            new Metric(
+                'remote_backups_size',
+                'Remote Backups Size',
+                MetricInterface::TYPE_SNAPSHOT,
+                new GigaBytes('remote_backups_size')
             ),
         ];
     }
@@ -67,7 +74,8 @@ class MetricsProvider implements ProviderInterface
         $data = $connection->getInstancesAssignedToService($panelalphaServiceId);
 
         $data = [
-            'active_instances' => $data['active_instances']
+            'active_instances' => $data['active_instances'],
+            'remote_backups_size' => $data['remote_backups_size']
         ];
 
         return $this->wrapUserData($data);

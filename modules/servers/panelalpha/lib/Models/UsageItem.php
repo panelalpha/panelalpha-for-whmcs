@@ -22,6 +22,12 @@ class UsageItem extends Model
         'is_hidden'
     ];
 
+
+    protected static $usageItems = [
+        'active_instances',
+        'remote_backups_size'
+    ];
+
     public static function getUsageItems(int $productId)
     {
         return self::where('rel_id', $productId)
@@ -32,15 +38,17 @@ class UsageItem extends Model
 
     public static function createUsageItems(int $productId)
     {
-        self::insert([
-            'rel_type' => 'Product',
-            'rel_id' => $productId,
-            'module_type' => 'servers',
-            'module' => 'panelalpha',
-            'metric' => 'active_instances',
-            'included' => '0.00000',
-            'is_hidden' => 1
-        ]);
+        foreach (self::$usageItems as $usageItem) {
+            self::insert([
+                'rel_type' => 'Product',
+                'rel_id' => $productId,
+                'module_type' => 'servers',
+                'module' => 'panelalpha',
+                'metric' => $usageItem,
+                'included' => '0.00000',
+                'is_hidden' => 1
+            ]);
+        }
     }
 
     public static function setHiddenField(string $key,  string $value)

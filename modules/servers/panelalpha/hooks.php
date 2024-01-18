@@ -98,6 +98,22 @@ add_hook('ProductEdit', 1, function ($params) {
     }
 });
 
+
+add_hook('ServerAdd', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    if ($server->type === 'panelalpha') {
+        $server->setHostname();
+    }
+});
+
+add_hook('ServerEdit', 1, function ($params) {
+    $server = Server::findOrFail($params['serverid']);
+    if ($server->type === 'panelalpha') {
+        $server->setHostname();
+    }
+});
+
+
 add_hook('ClientAreaProductDetails', 1, function ($params) {
     if ($_REQUEST['sso'] === 'yes') {
         $service = Service::findOrFail($_REQUEST['id']);
