@@ -141,10 +141,13 @@ class PanelAlphaApi
      */
     public function getInstancesServices(): array
     {
-        $endpoint = 'services/instances';
-        $method = 'GET';
-        $this->request->setAction(__FUNCTION__);
-        return $this->request->call($method, $endpoint);
+        try {
+            $endpoint = 'services/instances';
+            $method = 'GET';
+            $this->request->setAction(__FUNCTION__);
+            return $this->request->call($method, $endpoint);
+        } catch (Exception $exception) {}
+        return [];
     }
 
     /**
