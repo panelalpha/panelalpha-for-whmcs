@@ -39,7 +39,7 @@ class PanelAlphaApi
      */
     public function getPlans(): array
     {
-        $endpoint = 'plans';
+        $endpoint = 'plans?per_page=100';
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return  $this->request->call($method, $endpoint);
@@ -78,21 +78,14 @@ class PanelAlphaApi
     }
 
     /**
-     * @param array $client
+     * @param array $data
      * @return array|null
      * @throws Exception
      */
-    public function createUser(array $client): ?array
+    public function createUser(array $data): ?array
     {
         $endpoint = 'users';
         $method = 'POST';
-        $data = [
-            'first_name' => $client['firstname'],
-            'last_name' => $client['lastname'],
-            'company_name' => $client['companyname'] ?? "",
-            'email' => $client['email'],
-            'password' => Helper::generateRandomString(8)
-        ];
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
     }
@@ -254,7 +247,7 @@ class PanelAlphaApi
      */
     public function getPackages(): array
     {
-        $endpoint = 'packages';
+        $endpoint = 'packages?per_page=100';
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
@@ -289,5 +282,17 @@ class PanelAlphaApi
         $method = 'DELETE';
         $this->request->setAction(__FUNCTION__);
         $this->request->call($method, $endpoint);
+    }
+
+    /**
+     * @return array
+     * @throws Exception
+     */
+    public function getLoginUrl(): array
+    {
+        $endpoint = 'users/login-url';
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
     }
 }

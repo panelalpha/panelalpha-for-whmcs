@@ -74,7 +74,7 @@ class MetricsProvider implements ProviderInterface
         $data = $connection->getInstancesAssignedToService($panelalphaServiceId);
 
         $data = [
-            'active_instances' => $data['active_instances'],
+            'active_instances' => count($data['active_instances']),
             'remote_backups_size' => $data['remote_backups_size']
         ];
 

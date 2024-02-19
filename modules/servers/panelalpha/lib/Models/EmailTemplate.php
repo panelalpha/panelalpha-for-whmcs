@@ -84,4 +84,35 @@ class EmailTemplate extends Model
             ]
         );
     }
+
+    public static function createWelcomeNewUserEmailTemplate()
+    {
+        $emailFile = ROOTDIR . DIRECTORY_SEPARATOR .
+            "modules" . DIRECTORY_SEPARATOR .
+            "servers" . DIRECTORY_SEPARATOR .
+            "panelalpha" . DIRECTORY_SEPARATOR .
+            "templates" . DIRECTORY_SEPARATOR .
+            "emails" . DIRECTORY_SEPARATOR .
+            "welcomeNewUser.html";
+
+
+        self::updateOrInsert(
+            [
+                'type' => 'product',
+                'name' => 'PanelAlpha Welcome New User Email',
+            ],
+            [
+                'message' => file_get_contents($emailFile),
+                'subject' => 'Welcome to PanelAlpha  - Your Login Credentials',
+                'attachments' => '',
+                'fromname' => '',
+                'fromemail' => '',
+                'disabled' => 0,
+                'custom' => 0,
+                'copyto' => '',
+                'blind_copy_to' => '',
+                'plaintext' => 0
+            ]
+        );
+    }
 }

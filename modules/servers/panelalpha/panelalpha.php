@@ -32,7 +32,7 @@ if (basename($_SERVER['SCRIPT_NAME']) == "configservers.php") {
         \WHMCS\Database\Capsule::table('tblconfiguration')
             ->where('setting', '=', 'ModuleHooks')
             ->update(['value' => implode(",", $hooksArray)]);
-        header('Location: '.$_SERVER['PHP_SELF'].'?action=manage');
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?action=manage');
     }
 }
 
@@ -120,7 +120,9 @@ function panelalpha_ConfigOptions($params): ?array
         echo json_encode($data);
         die();
 
-    } else if ($_REQUEST['action'] == 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
+    }
+
+    if ($_REQUEST['action'] == 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
         foreach ($_POST['metric'] as $key => $value) {
             UsageItem::setHiddenField($key, $value);
         }
@@ -131,8 +133,12 @@ function panelalpha_ConfigOptions($params): ?array
         CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id']);
         EmailTemplate::createManualServiceTerminationEmailTemplate();
         EmailTemplate::createWelcomeEmailTemplate();
+        EmailTemplate::createWelcomeNewUserEmailTemplate();
+        return [];
 
-    } else if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
+    }
+
+    if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
         try {
             $view = new View();
             $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
@@ -180,22 +186,25 @@ function panelalpha_ConfigOptions($params): ?array
         }
         echo json_encode($data);
         die();
+    }
 
-    } else if ($_REQUEST['action'] == 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
-        if ($_POST['panelalpha-package']) {
-            Capsule::table('tblmodule_configuration')
-                ->updateOrInsert(
-                    [
-                        'entity_type' => 'addon',
-                        'entity_id' => $_REQUEST['id'],
-                        'setting_name' => 'configoption1',
-                        'friendly_name' => 'Package ID'
-                    ],
-                    [
-                        'value' => $_POST['panelalpha-package']
-                    ]
-                );
-        }
+    if (
+        $_POST['panelalpha-package']
+        && $_REQUEST['action'] == 'save'
+        && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php'
+    ) {
+        Capsule::table('tblmodule_configuration')
+            ->updateOrInsert(
+                [
+                    'entity_type' => 'addon',
+                    'entity_id' => $_REQUEST['id'],
+                    'setting_name' => 'configoption1',
+                    'friendly_name' => 'Package ID'
+                ],
+                [
+                    'value' => $_POST['panelalpha-package']
+                ]
+            );
     }
     return [];
 }
@@ -216,40 +225,60 @@ function panelalpha_CreateAccount(array $params): string
 
         if ($params['addonId']) {
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
-            $connection->addPackageToService($panelAlphaServiceId, (int)$params['Package ID']);
-        } else {
-            $user = $connection->getUser($params['clientsdetails']['email']);
-            if (!$user) {
-                $user = $connection->createUser($params['clientsdetails']);
-            }
-
-            if (!$user) {
-                throw new Exception('No user from PanelAlpha');
-            }
-
-            $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
             if (!$panelAlphaServiceId) {
-                $planId = $params['configoption1'];
-                $service = $connection->createService($user, $planId);
-
-                if (!$service) {
-                    throw new Exception('No service from PanelAlpha');
-                }
-
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service['id']);
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
-
-                $automaticInstanceInstalling = $params['configoption2'];
-                if ($automaticInstanceInstalling == 'on') {
-                    $instanceName = Helper::getCustomField($params['serviceid'], 'Instance Name') ?? "My First Instance";
-                    $theme = $params['configoption3'] ?? "";
-                    $instance = $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id']);
-
-                    $hosting = Hosting::find($params['serviceid']);
-                    $hosting->domain = $instance['domain'];
-                    $hosting->save();
-                }
+                throw new Exception('No service id from PanelAlpha');
             }
+            $connection->addPackageToService($panelAlphaServiceId, (int)$params['Package ID']);
+            return 'success';
+        }
+
+        $user = $connection->getUser($params['clientsdetails']['email']);
+        if (!$user) {
+            $data = [
+                'first_name' => $params['clientsdetails']['firstname'],
+                'last_name' => $params['clientsdetails']['lastname'],
+                'company_name' => $params['clientsdetails']['companyname'] ?? "",
+                'email' => $params['clientsdetails']['email'],
+                'password' => Helper::generateRandomString(8)
+            ];
+            $user = $connection->createUser($data);
+
+            $dataUrl = $connection->getLoginUrl();
+            $mailParams = [
+                'user_email' => $data['email'],
+                'user_password' => $data['password'],
+                'login_url' => $dataUrl['url'],
+                'service_id' => $params['serviceid'],
+            ];
+            LocalApi::sendUserEmail('PanelAlpha Welcome New User Email', $mailParams);
+        }
+        if (!$user) {
+            throw new Exception('No user from PanelAlpha');
+        }
+
+        $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
+        if ($panelAlphaServiceId) {
+            return 'success';
+        }
+
+        $planId = $params['configoption1'];
+        $service = $connection->createService($user, $planId);
+        if (!$service) {
+            throw new Exception('No service from PanelAlpha');
+        }
+
+        Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service['id']);
+        Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
+
+        $automaticInstanceInstalling = $params['configoption2'];
+        if ($automaticInstanceInstalling == 'on') {
+            $instanceName = Helper::getCustomField($params['serviceid'], 'Instance Name') ?? "My First Instance";
+            $theme = $params['configoption3'] ?? "";
+            $instance = $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id']);
+
+            $hosting = Hosting::find($params['serviceid']);
+            $hosting->domain = $instance['domain'];
+            $hosting->save();
         }
     } catch (Exception $e) {
         logModuleCall(
@@ -277,11 +306,11 @@ function panelalpha_SuspendAccount(array $params): string
     try {
         if ($params['addonId']) {
             throw new Exception('Suspend for addons is not supported.');
-        } else {
-            $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaApi($server);
-            $connection->suspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
         }
+
+        $server = Server::findOrFail($params['serverid'])->toArray();
+        $connection = new PanelAlphaApi($server);
+        $connection->suspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
     } catch (Exception $e) {
         logModuleCall(
             'panelalpha',
@@ -309,11 +338,11 @@ function panelalpha_UnsuspendAccount(array $params): string
     try {
         if ($params['addonId']) {
             throw new Exception('Unsuspend for addons is not supported.');
-        } else {
-            $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaApi($server);
-            $connection->unsuspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
         }
+
+        $server = Server::findOrFail($params['serverid'])->toArray();
+        $connection = new PanelAlphaApi($server);
+        $connection->unsuspendAccount($params['customfields']['User ID'], $params['customfields']['Service ID']);
     } catch (Exception $e) {
         logModuleCall(
             'panelalpha',
@@ -359,19 +388,19 @@ function panelalpha_TerminateAccount(array $params): string
                 ];
                 LocalApi::sendAdminEmail('PanelAlpha Service Termination', $params);
                 return 'The account must be deleted manually';
-            } else {
-                $instances = $connection->getInstancesAssignedToService($params['customfields']['Service ID']);
-                foreach ($instances['instances'] as $instanceId) {
-                    $connection->deleteInstance($instanceId);
-                }
-                $connection->deleteService($params['customfields']['Service ID']);
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', '');
-                Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', '');
+            }
 
-                $otherServices = $connection->getUserServices($params['customfields']['User ID']);
-                if (empty($otherServices)) {
-                    $connection->deleteUser($params['customfields']['User ID']);
-                }
+            $instances = $connection->getInstancesAssignedToService($params['customfields']['Service ID']);
+            foreach ($instances['active_instances'] as $instance) {
+                $connection->deleteInstance($instance['id']);
+            }
+            $connection->deleteService($params['customfields']['Service ID']);
+            Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', '');
+            Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', '');
+
+            $otherServices = $connection->getUserServices($params['customfields']['User ID']);
+            if (empty($otherServices)) {
+                $connection->deleteUser($params['customfields']['User ID']);
             }
         }
     } catch (Exception $e) {
@@ -402,16 +431,16 @@ function panelalpha_ChangePackage(array $params): string
     try {
         if ($params['addonId']) {
             throw new Exception('Change package for addons is not supported');
-        } else {
-            $upgradeProduct = \WHMCS\Product\Product::find($params['pid']);
-            $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
-            $panelAlphaUserId = Helper::getCustomField($params['serviceid'], 'User ID');
-            $newPlanId = $upgradeProduct->configoption1;
-
-            $server = Server::findOrFail($params['serverid'])->toArray();
-            $connection = new PanelAlphaApi($server);
-            $connection->changePlan($panelAlphaUserId, $panelAlphaServiceId, $newPlanId);
         }
+
+        $upgradeProduct = \WHMCS\Product\Product::find($params['pid']);
+        $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
+        $panelAlphaUserId = Helper::getCustomField($params['serviceid'], 'User ID');
+        $newPlanId = $upgradeProduct->configoption1;
+
+        $server = Server::findOrFail($params['serverid'])->toArray();
+        $connection = new PanelAlphaApi($server);
+        $connection->changePlan($panelAlphaUserId, $panelAlphaServiceId, $newPlanId);
     } catch (Exception $e) {
         logModuleCall(
             'panelalpha',
@@ -451,7 +480,7 @@ function panelalpha_TestConnection(array $params): array
             'panelalpha',
             __FUNCTION__,
             $params,
-            $e->getMessage() . "\n" .    $e->getTraceAsString(),
+            $e->getMessage() . "\n" . $e->getTraceAsString(),
         );
 
         $success = false;

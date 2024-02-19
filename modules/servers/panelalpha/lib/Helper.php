@@ -51,11 +51,11 @@ class Helper
     }
 
     /**
-     * @param int $serviceId
+     * @param int|null $serviceId
      * @param string $fieldName
      * @return mixed
      */
-    public static function getCustomField(int $serviceId, string $fieldName)
+    public static function getCustomField(?int $serviceId, string $fieldName)
     {
         return CustomField::join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
             ->where('tblcustomfieldsvalues.relid', $serviceId)
