@@ -25,6 +25,7 @@
 			$('#instanceLimit').html(selectedOption.data('instance_limit'));
 			$('#onboarding-name').html(selectedOption.data('onboarding_name'));
 			$('#onboarding-description').attr('data-original-title', selectedOption.data('onboarding_description'));
+			$('#onboarding-ask-for-domain').val(selectedOption.data('onboarding_ask_for_domain'))
 			$('#server-type').html(selectedOption.data('server_type_name'));
 			$('#server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
 			if (selectedOption.data('server_group')) {
@@ -249,6 +250,7 @@
                     data-instance_limit="{$plan['instance_limit']}"
                     data-onboarding_name="{$MGLANG['aa']['product']['onboarding']['name'][{$plan['config']['onboarding']['method']}]}"
                     data-onboarding_description="{$MGLANG['aa']['product']['onboarding']['description'][{$plan['config']['onboarding']['method']}]}"
+                    data-onboarding_ask_for_domain="{$plan['config']['onboarding']['ask_for_domain']}"
                     data-server_type="{$plan['server_type']}"
                     data-server_type_name="{$MGLANG['aa']['product']['server'][{$plan['server_type']}]}"
                     data-server_group="{$plan['server_group_name']}"
@@ -274,6 +276,7 @@
           {/foreach}
       </select>
       <input type="hidden" name="configoption[6]" value="">
+      <input id="onboarding-ask-for-domain" type="hidden" name="configoption[7]" value="{$selectedPlan['config']['onboarding']['ask_for_domain']}">
     </td>
   </tr>
   </tbody>

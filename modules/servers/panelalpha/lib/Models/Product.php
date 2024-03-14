@@ -13,6 +13,7 @@ use WHMCS\Module\Server\PanelAlpha\Helper;
  * @property string $configoption5
  * @property string $configoption6
  * @property bool $showdomainoptions
+ * @property string $configoption7
  * @method static findOrFail(mixed $id)
  */
 class Product extends Model
@@ -169,12 +170,21 @@ class Product extends Model
     {
         $automaticInstallInstance = $this->configoption2 === 'on';
         $onboardingType = $this->configoption6;
+        $onboardingAskForDomain = $this->configoption7;
 
         if ($automaticInstallInstance && $onboardingType === 'Standard') {
             $this->showdomainoptions = true;
-        } else {
-            $this->showdomainoptions = false;
+            $this->save();
+            return;
         }
+
+        if ($automaticInstallInstance && $onboardingType === 'Quick' && $onboardingAskForDomain) {
+            $this->showdomainoptions = true;
+            $this->save();
+            return;
+        }
+
+        $this->showdomainoptions = false;
         $this->save();
     }
 }
