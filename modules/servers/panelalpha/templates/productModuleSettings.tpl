@@ -35,20 +35,30 @@
 			$('#server-assign-rule').html(selectedOption.data('server_assign_rule'));
 			$('#assign-rule-description').attr('data-original-title', selectedOption.data('server_assign_rule_description'));
 
-			if (selectedOption.data('dns_server')) {
+			if (selectedOption.data('dns_server_internal')) {
+				$('#dns-server-icon').show();
+				$('#dns-server').html(selectedOption.data('server_type_name') + '\'s DNS Server');
+				$('#dns-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
+			} else if (selectedOption.data('dns_server')) {
+				$('#dns-server-icon').show();
 				$('#dns-server').html(selectedOption.data('dns_server'));
 				$('#dns-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('dns_server_name') + '.svg');
 			} else {
-				$('#dns-server').html(selectedOption.data('server_type_name') + '\'s DNS Server');
-				$('#dns-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
+				$('#dns-server').html("None");
+				$('#dns-server-icon').hide();
 			}
 
-			if (selectedOption.data('email_server')) {
+			if (selectedOption.data('email_server_internal')) {
+				$('#email-server-icon').show();
+				$('#email-server').html(selectedOption.data('server_type_name') + '\'s Email Server');
+				$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
+			} else if (selectedOption.data('email_server')) {
+				$('#email-server-icon').show();
 				$('#email-server').html(selectedOption.data('email_server'));
 				$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('email_server_name') + '.svg');
 			} else {
-				$('#email-server').html(selectedOption.data('server_type_name') + '\'s Email Server');
-				$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
+				$('#email-server').html("None");
+				$('#email-server-icon').hide();
 			}
 
 			$('.account-config').remove();
@@ -59,13 +69,13 @@
 					let fields = config.split(':');
 
 					let transformedText = ""
-                    if (fields[0] === 'whm_package') {
-                        transformedText = "WHM Package";
-                    } else {
-                        transformedText = fields[0].replace(/_/g, " ").replace(/\b\w/g, function (match) {
-                            return match.toUpperCase();
-                        });
-                    }
+					if (fields[0] === 'whm_package') {
+						transformedText = "WHM Package";
+					} else {
+						transformedText = fields[0].replace(/_/g, " ").replace(/\b\w/g, function (match) {
+							return match.toUpperCase();
+						});
+					}
 
 					let transformedContent = fields[1].charAt(0).toUpperCase() + fields[1].substring(1);
 
@@ -84,12 +94,12 @@
 		});
 
 		const onboardingType = $('#onboarding-name');
-        $('[name="configoption[6]"]').val(onboardingType.text());
+		$('[name="configoption[6]"]').val(onboardingType.text());
 
-        onboardingType.on("DOMSubtreeModified", function() {
-            let onboardingTypeValue = $(this).text();
-            $('[name="configoption[6]"]').val(onboardingTypeValue);
-        });
+		onboardingType.on("DOMSubtreeModified", function () {
+			let onboardingTypeValue = $(this).text();
+			$('[name="configoption[6]"]').val(onboardingTypeValue);
+		});
 
 
 		let automaticCheckbox = $('[name="configoption[2]"]');
@@ -104,13 +114,13 @@
 			activeStatus = 'on'
 		}
 
-        let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
-        let activeRemoteBackupsSizeStatus;
-        if (remoteBackupsSizeMetricCheckbox.val() == 1) {
-            activeRemoteBackupsSizeStatus = ''
-        } else {
-            activeRemoteBackupsSizeStatus = 'on'
-        }
+		let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
+		let activeRemoteBackupsSizeStatus;
+		if (remoteBackupsSizeMetricCheckbox.val() == 1) {
+			activeRemoteBackupsSizeStatus = ''
+		} else {
+			activeRemoteBackupsSizeStatus = 'on'
+		}
 
 
 		$('#automatic').bootstrapSwitch({
@@ -149,14 +159,14 @@
 			},
 		})
 
-        $('#metric_remote_backups_size').bootstrapSwitch({
-            size: 'small',
-            onColor: 'success',
-            state: activeRemoteBackupsSizeStatus,
-            onInit: () => {
-                this.value = activeRemoteBackupsSizeStatus
-            },
-        })
+		$('#metric_remote_backups_size').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: activeRemoteBackupsSizeStatus,
+			onInit: () => {
+				this.value = activeRemoteBackupsSizeStatus
+			},
+		})
 
 
 		$('#automatic').on('switchChange.bootstrapSwitch', function (event, state) {
@@ -192,13 +202,13 @@
 			}
 		});
 
-        $('#metric_remote_backups_size').on('switchChange.bootstrapSwitch', function (event, state) {
-            if (state) {
-                remoteBackupsSizeMetricCheckbox.val(0)
-            } else {
-                remoteBackupsSizeMetricCheckbox.val(1)
-            }
-        });
+		$('#metric_remote_backups_size').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				remoteBackupsSizeMetricCheckbox.val(0)
+			} else {
+				remoteBackupsSizeMetricCheckbox.val(1)
+			}
+		});
 
 
 		$('#select-default-theme').select2({
@@ -229,234 +239,244 @@
 </script>
 
 <table class="form module-settings" width="100%" border="0" cellspacing="2" cellpadding="3" id="tblModuleSettings">
-    <tbody>
-    <tr>
-        <td class="fieldlabel" width="20%">PanelAlpha Plan</td>
-        <td class="fieldarea">
-            <select id="select-plan" name="configoption[1]" class="form-control select-inline">
-                {foreach $plans as $plan}
-                    <option value="{$plan['id']}"
-                            data-instance_limit="{$plan['instance_limit']}"
-                            data-onboarding_name="{$MGLANG['aa']['product']['onboarding']['name'][{$plan['config']['onboarding']['method']}]}"
-                            data-onboarding_description="{$MGLANG['aa']['product']['onboarding']['description'][{$plan['config']['onboarding']['method']}]}"
-                            data-server_type="{$plan['server_type']}"
-                            data-server_type_name="{$MGLANG['aa']['product']['server'][{$plan['server_type']}]}"
-                            data-server_group="{$plan['server_group_name']}"
-                            data-server_assign_rule="{$MGLANG['aa']['product']['assign_rule']['name'][{$plan['server_assign_rule']}]}"
-                            data-server_assign_rule_description="{$MGLANG['aa']['product']['assign_rule']['description'][{$plan['server_assign_rule']}]}"
-                            data-account_config="{$plan['server_config']}"
-                            {if $plan['dns_server_type']}
-                                data-dns_server="{$MGLANG['aa']['product']['dns_server'][{$plan['dns_server_type']}]} ({$plan['dns_server_name']})"
-                                data-dns_server_name="{$plan['dns_server_type']}"
-                            {/if}
-                            {if $plan['email_server_type']}
-                                data-email_server="{$MGLANG['aa']['product']['email_server'][{$plan['email_server_type']}]} ({$plan['email_server_name']})"
-                                data-email_server_name="{$plan['email_server_type']}"
-                            {/if}
-                            {if $plan['id'] == $product->configoption1}
-                                selected
-                            {/if}
-                    >{$plan['name']}</option>
-                {/foreach}
-            </select>
-            <input type="hidden" name="configoption[6]" value="">
-        </td>
-    </tr>
-    </tbody>
+  <tbody>
+  <tr>
+    <td class="fieldlabel" width="20%">PanelAlpha Plan</td>
+    <td class="fieldarea">
+      <select id="select-plan" name="configoption[1]" class="form-control select-inline">
+          {foreach $plans as $plan}
+            <option value="{$plan['id']}"
+                    data-instance_limit="{$plan['instance_limit']}"
+                    data-onboarding_name="{$MGLANG['aa']['product']['onboarding']['name'][{$plan['config']['onboarding']['method']}]}"
+                    data-onboarding_description="{$MGLANG['aa']['product']['onboarding']['description'][{$plan['config']['onboarding']['method']}]}"
+                    data-server_type="{$plan['server_type']}"
+                    data-server_type_name="{$MGLANG['aa']['product']['server'][{$plan['server_type']}]}"
+                    data-server_group="{$plan['server_group_name']}"
+                    data-server_assign_rule="{$MGLANG['aa']['product']['assign_rule']['name'][{$plan['server_assign_rule']}]}"
+                    data-server_assign_rule_description="{$MGLANG['aa']['product']['assign_rule']['description'][{$plan['server_assign_rule']}]}"
+                    data-account_config="{$plan['server_config']}"
+                    {if $plan['dns_server_type']}
+                      data-dns_server="{$MGLANG['aa']['product']['dns_server'][{$plan['dns_server_type']}]} ({$plan['dns_server_name']})"
+                      data-dns_server_name="{$plan['dns_server_type']}"
+                    {elseif $plan['dns_server_internal']}
+                      data-dns_server_internal="true"
+                    {/if}
+                    {if $plan['email_server_type']}
+                      data-email_server="{$MGLANG['aa']['product']['email_server'][{$plan['email_server_type']}]} ({$plan['email_server_name']})"
+                      data-email_server_name="{$plan['email_server_type']}"
+                    {elseif $plan['email_server_internal']}
+                      data-email_server_internal="true"
+                    {/if}
+                    {if $plan['id'] == $product->configoption1}
+                      selected
+                    {/if}
+            >{$plan['name']}</option>
+          {/foreach}
+      </select>
+      <input type="hidden" name="configoption[6]" value="">
+    </td>
+  </tr>
+  </tbody>
 </table>
 
 <table class="form module-settings" width="100%" border="0" cellspacing="2" cellpadding="3" id="tblModulePlanSettings">
-    <tbody>
-    <tr>
-        <td class="fieldlabel" width="20%">Plan Settings</td>
-        <td>
-            <span class="plan-settings">Instances limit: </span>
-            <span id="instanceLimit">{$selectedPlan['instance_limit']}</span>
-        </td>
-    </tr>
-    <tr>
-        <td class="fieldlabel subtitle">Plan configuration from PanelAlpha</td>
-        <td>
-            <span class="plan-settings">Onboarding: </span>
-            <span id="onboarding-name">{$MGLANG['aa']['product']['onboarding']['name'][{$selectedPlan['config']['onboarding']['method']}]}</span>
-            <span id="onboarding-description" style="margin-left: 4px;" data-toggle="tooltip" data-placement="right"
-                  title="{$MGLANG['aa']['product']['onboarding']['description'][{$selectedPlan['config']['onboarding']['method']}]}">
+  <tbody>
+  <tr>
+    <td class="fieldlabel" width="20%">Plan Settings</td>
+    <td>
+      <span class="plan-settings">Instances limit: </span>
+      <span id="instanceLimit">{$selectedPlan['instance_limit']}</span>
+    </td>
+  </tr>
+  <tr>
+    <td class="fieldlabel subtitle">Plan configuration from PanelAlpha</td>
+    <td>
+      <span class="plan-settings">Onboarding: </span>
+      <span id="onboarding-name">{$MGLANG['aa']['product']['onboarding']['name'][{$selectedPlan['config']['onboarding']['method']}]}</span>
+      <span id="onboarding-description" style="margin-left: 4px;" data-toggle="tooltip" data-placement="right"
+            title="{$MGLANG['aa']['product']['onboarding']['description'][{$selectedPlan['config']['onboarding']['method']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
-        </td>
-    </tr>
-    <tr>
-        <td></td>
-        <td>
-            <span class="plan-settings">Server Type: </span>
-            <img id="server-icon" style="padding-bottom: 2px; height: 22px;"
-                 src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg">
-            <span id="server-type"> {$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}</span>
-        </td>
-    </tr>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>
+      <span class="plan-settings">Server Type: </span>
+      <img id="server-icon" style="padding-bottom: 2px; height: 22px;"
+           src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg">
+      <span id="server-type"> {$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}</span>
+    </td>
+  </tr>
 
-    {if $selectedPlan['server_group_name']}
-        <tr>
-            <td></td>
-            <td>
-                <span class="plan-settings">Server Group: </span>
-                <span id="server-group">{$selectedPlan['server_group_name']}</span>
-                <span> (Assign Rule:
+  {if $selectedPlan['server_group_name']}
+    <tr>
+      <td></td>
+      <td>
+        <span class="plan-settings">Server Group: </span>
+        <span id="server-group">{$selectedPlan['server_group_name']}</span>
+        <span> (Assign Rule:
                 <span id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)
             </span>
-                <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
-                      data-placement="right"
-                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
+        <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
+              data-placement="right"
+              title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
-            </td>
-        </tr>
-    {else}
-        <tr id="server">
-            <td></td>
-            <td>
-                <span class="plan-settings">Server Group: </span>
-                <span id="server-group">All Servers</span>
-                <span> (Assign Rule: <span
-                            id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)</span>
-                <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
-                      data-placement="right"
-                      title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
+      </td>
+    </tr>
+  {else}
+    <tr id="server">
+      <td></td>
+      <td>
+        <span class="plan-settings">Server Group: </span>
+        <span id="server-group">All Servers</span>
+        <span> (Assign Rule: <span
+                  id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)</span>
+        <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
+              data-placement="right"
+              title="{$MGLANG['aa']['product']['assign_rule']['description'][{$selectedPlan['server_assign_rule']}]}">
                 <img src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/informationIcon.svg"
                      style="height: 16px;">
             </span>
-            </td>
-        </tr>
-    {/if}
-
-    {foreach $selectedPlan['account_config'] as $key=>$value}
-        <tr class="account-config">
-            <td></td>
-            <td>
-                {if $key == 'whm_package'}
-                    <span class="plan-settings" id="{$key}">WHM Package:</span>
-                    <span id="{$value}">{$value|capitalize}</span>
-                {else}
-                    <span class="plan-settings" id="{$key}">{$key|replace: '_':' '|capitalize}:</span>
-                    <span id="{$value}">{$value|capitalize}</span>
-                {/if}
-            </td>
-        </tr>
-    {/foreach}
-
-    <tr>
-        <td></td>
-        <td>
-            <span class="plan-settings">DNS Server:</span>
-            {if $selectedPlan['dns_server_type']}
-                <img id="dns-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['dns_server_type']}.svg"
-                     style="padding-bottom: 2px; height: 22px;">
-                <span id="dns-server">{$MGLANG['aa']['product']['dns_server'][{$selectedPlan['dns_server_type']}]} ({$selectedPlan['dns_server_name']})</span>
-            {else}
-                <img id="dns-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
-                     style="padding-bottom: 2px; height: 22px;">
-                <span id="dns-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s DNS Server</span>
-            {/if}
-        </td>
+      </td>
     </tr>
-    <tr>
-        <td></td>
-        <td><span class="plan-settings">Email Server:</span>
-            {if $selectedPlan['email_server_type']}
-                <img id="email-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
-                     style="padding-bottom: 2px; height: 22px;">
-                <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
-            {else}
-                <img id="email-server-icon"
-                     src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
-                     style="padding-bottom: 2px; height: 22px;">
-                <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s Email Server</span>
-            {/if}
-        </td>
+  {/if}
+
+  {foreach $selectedPlan['account_config'] as $key=>$value}
+    <tr class="account-config">
+      <td></td>
+      <td>
+          {if $key == 'whm_package'}
+            <span class="plan-settings" id="{$key}">WHM Package:</span>
+            <span id="{$value}">{$value|capitalize}</span>
+          {else}
+            <span class="plan-settings" id="{$key}">{$key|replace: '_':' '|capitalize}:</span>
+            <span id="{$value}">{$value|capitalize}</span>
+          {/if}
+      </td>
     </tr>
-    </tbody>
+  {/foreach}
+
+  <tr>
+    <td></td>
+    <td>
+      <span class="plan-settings">DNS Server:</span>
+        {if $selectedPlan['dns_server_internal']}
+          <img id="dns-server-icon"
+               src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
+               style="padding-bottom: 2px; height: 22px;">
+          <span id="dns-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s DNS Server</span>
+        {elseif $selectedPlan['dns_server_type']}
+          <img id="dns-server-icon"
+               src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['dns_server_type']}.svg"
+               style="padding-bottom: 2px; height: 22px;">
+          <span id="dns-server">{$MGLANG['aa']['product']['dns_server'][{$selectedPlan['dns_server_type']}]} ({$selectedPlan['dns_server_name']})</span>
+        {else}
+          <img id="dns-server-icon" style="display: none; padding-bottom: 2px; height: 22px;">
+          <span id="dns-server">None</span>
+        {/if}
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><span class="plan-settings">Email Server:</span>
+        {if $selectedPlan['email_server_internal']}
+          <img id="email-server-icon"
+               src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
+               style="padding-bottom: 2px; height: 22px;">
+          <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s Email Server</span>
+        {elseif $selectedPlan['email_server_type']}
+          <img id="email-server-icon"
+               src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
+               style="padding-bottom: 2px; height: 22px;">
+          <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
+        {else}
+          <img id="email-server-icon" style="display: none; padding-bottom: 2px; height: 22px;">
+          <span id="email-server">None</span>
+        {/if}
+    </td>
+  </tr>
+  </tbody>
 </table>
 
 <table class="form module-settings" width="100%" border="0" cellspacing="2" cellpadding="3"
        id="tblModuleActionSettings">
-    <tbody>
-    <tr>
-        <td class="fieldlabel" width="20%">Automatic instance provisioning<br>
-            <span class="subtitle">Automatically installs a Wordpress instance when the service is provisioned by WHMCS</span>
-        </td>
-        <td class="fieldarea">
-            <table>
-                <tbody>
-                <tr>
-                    <td style="padding: 0;">
-                        <input id="automatic" type="checkbox" name="automatic" class="switch">
-                        <input type="hidden" name="configoption[2]" value="{$product->configoption2}">
-                    </td>
-                    <td class="default-theme" style="padding-left: 48px; text-align: end;">Default instance theme</td>
-                    <td class="default-theme" style="padding: 0;">
-                        <select id="select-default-theme" class="form-control" name="configoption[3]">
-                            {if $product->configoption3}
-                                <option value="{$product->configoption3}"
-                                        selected="selected">{$product->configoption3|replace:'-':" "|capitalize}</option>
-                            {/if}
-                        </select>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </td>
-    </tr>
-    <tr>
-        <td class="fieldlabel" width="20%">Manual termination (recommended)<br>
-            <span class="subtitle">If enabled WHMCS will NOT terminate the service in PanelAIpha. You will have to manuallv remove it from the system. It the safest option in a case that there\'s some mistake.</span>
-        </td>
-        <td class="fieldarea">
-            <input id="manual-termination" type="checkbox" name="manual-termination" class="switch">
-            <input type="hidden" name="configoption[4]" value="{$product->configoption4}">
-    </tr>
-    <tr>
-        <td class="fieldlabel" width="20%">Panel Alpha SSO in main menu<br>
-            <span class="subtitle">Display PanelAlpha SSO link in the main client area menu for customers who have an active service with this product</span>
-        </td>
-        <td class="fieldarea">
-            <input id="sso" type="checkbox" name="sso" class="switch">
-            <input type="hidden" name="configoption[5]" value="{$product->configoption5}">
-        </td>
-    </tr>
-    </tbody>
+  <tbody>
+  <tr>
+    <td class="fieldlabel" width="20%">Automatic instance provisioning<br>
+      <span class="subtitle">Automatically installs a WordPress instance when the service is provisioned by WHMCS</span>
+    </td>
+    <td class="fieldarea">
+      <table>
+        <tbody>
+        <tr>
+          <td style="padding: 0;">
+            <input id="automatic" type="checkbox" name="automatic" class="switch">
+            <input type="hidden" name="configoption[2]" value="{$product->configoption2}">
+          </td>
+          <td class="default-theme" style="padding-left: 48px; text-align: end;">Default instance theme</td>
+          <td class="default-theme" style="padding: 0;">
+            <select id="select-default-theme" class="form-control" name="configoption[3]">
+                {if $product->configoption3}
+                  <option value="{$product->configoption3}"
+                          selected="selected">{$product->configoption3|replace:'-':" "|capitalize}</option>
+                {/if}
+            </select>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="fieldlabel" width="20%">Manual termination (recommended)<br>
+      <span class="subtitle">If enabled WHMCS will NOT terminate the service in PanelAIpha. You will have to manuallv remove it from the system. It the safest option in a case that there\'s some mistake.</span>
+    </td>
+    <td class="fieldarea">
+      <input id="manual-termination" type="checkbox" name="manual-termination" class="switch">
+      <input type="hidden" name="configoption[4]" value="{$product->configoption4}">
+  </tr>
+  <tr>
+    <td class="fieldlabel" width="20%">Panel Alpha SSO in main menu<br>
+      <span class="subtitle">Display PanelAlpha SSO link in the main client area menu for customers who have an active service with this product</span>
+    </td>
+    <td class="fieldarea">
+      <input id="sso" type="checkbox" name="sso" class="switch">
+      <input type="hidden" name="configoption[5]" value="{$product->configoption5}">
+    </td>
+  </tr>
+  </tbody>
 </table>
 
 <table class="form metric-settings" width="100%" border="0" cellspacing="2" cellpadding="3" id="tblMetric">
-    <tbody>
-    <tr>
-        <td width="150"> Metric Billing</td>
-        <td class="fieldarea">
-            <div class="config" id="metricsConfig">
-                <div class="row">
-                    {foreach $usageItems as $item}
-                        <div class="col-md-4">
-                            <div class="metric">
-                                <div>
-                                    <span>{$item->metric|replace:'_':' '|capitalize}</span>
-                                    <span class="toggle">
+  <tbody>
+  <tr>
+    <td width="150"> Metric Billing</td>
+    <td class="fieldarea">
+      <div class="config" id="metricsConfig">
+        <div class="row">
+            {foreach $usageItems as $item}
+              <div class="col-md-4">
+                <div class="metric">
+                  <div>
+                    <span>{$item->metric|replace:'_':' '|capitalize}</span>
+                    <span class="toggle">
                                     <input id="metric_{$item->metric}" type="checkbox" class="switch">
                                     <input type="hidden" name="metric[{$item->metric}]"
                                            value="{$item->is_hidden}"></span>
-                                </div>
-                                <span>
+                  </div>
+                  <span>
                                 <a href="#" class="btn-link open-metric-pricing" data-metric="{$item->metric}">Configure Pricing</a>
                             </span>
-                            </div>
-                        </div>
-                    {/foreach}
                 </div>
-            </div>
-        </td>
-    </tr>
-    </tbody>
+              </div>
+            {/foreach}
+        </div>
+      </div>
+    </td>
+  </tr>
+  </tbody>
 </table>
