@@ -21,20 +21,22 @@ class CustomField extends Model
         'adminonly'
     ];
 
-    public static function createProductCustomFieldsIfNotExist(int $productId)
+    public static function createProductCustomFieldsIfNotExist(int $productId, ?array $configFields)
     {
         $customFields = CustomField::where('relid', $productId)
             ->where('type', 'product')
             ->get();
 
         if ($customFields->isEmpty()) {
+            $isAutoInstallInstance = !empty($configFields) && $configFields[2] === 'on';
+
             CustomField::insert([
                 [
                     'type' => 'product',
                     'relid' => $productId,
                     'fieldname' => 'Instance Name',
                     'fieldtype' => 'text',
-                    'showorder' => 'on',
+                    'showorder' => $isAutoInstallInstance ? 'on' : '',
                     'adminonly' => ''
                 ],
                 [

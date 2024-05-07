@@ -178,7 +178,11 @@ class Product extends Model
             return;
         }
 
-        if ($automaticInstallInstance && $onboardingType === 'Quick' && $onboardingAskForDomain) {
+        if (
+            $automaticInstallInstance
+            && ($onboardingType === 'Quick' || $onboardingType === 'Super Quick')
+            && $onboardingAskForDomain
+        ) {
             $this->showdomainoptions = true;
             $this->save();
             return;

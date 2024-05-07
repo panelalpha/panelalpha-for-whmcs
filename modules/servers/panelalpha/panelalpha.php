@@ -130,7 +130,7 @@ function panelalpha_ConfigOptions($params): ?array
             $product = Product::findOrFail($_REQUEST['id']);
             $product->saveConfigOptions($_POST['configoption']);
         }
-        CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id']);
+        CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id'], $_POST['configoption']);
         EmailTemplate::createManualServiceTerminationEmailTemplate();
         EmailTemplate::createWelcomeEmailTemplate();
         EmailTemplate::createWelcomeNewUserEmailTemplate();

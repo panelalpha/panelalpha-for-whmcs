@@ -2,6 +2,7 @@
 
 use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\Helper;
+use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
 use WHMCS\Module\Server\PanelAlpha\Models\Product;
@@ -94,6 +95,15 @@ add_hook('ProductEdit', 1, function ($params) {
     $product = Product::findOrFail($params['pid']);
 
     if ($product->servertype === 'panelalpha') {
+        $isAutoInstallInstance = $product->configoption2 === 'on';
+        CustomField::where([
+            ['type', 'product'],
+            ['relid', $params['pid']],
+            ['fieldname', 'Instance Name']
+        ])->update([
+            'showorder' => $isAutoInstallInstance ? 'on' : ''
+        ]);
+
         $product->setShowDomainOption();
     }
 });

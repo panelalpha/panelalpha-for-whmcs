@@ -169,6 +169,12 @@
 			},
 		})
 
+    if (automaticCheckbox.val() === 'on') {
+			$('.default-theme').show();
+		} else {
+			$('.default-theme').hide();
+		}
+
 
 		$('#automatic').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
@@ -436,7 +442,7 @@
   </tr>
   <tr>
     <td class="fieldlabel" width="20%">Manual termination (recommended)<br>
-      <span class="subtitle">If enabled WHMCS will NOT terminate the service in PanelAIpha. You will have to manuallv remove it from the system. It the safest option in a case that there\'s some mistake.</span>
+      <span class="subtitle">If enabled WHMCS will NOT terminate the service in PanelAlpha. You will have to manually remove it from the system. It the safest option in a case that there's some mistake.</span>
     </td>
     <td class="fieldarea">
       <input id="manual-termination" type="checkbox" name="manual-termination" class="switch">
