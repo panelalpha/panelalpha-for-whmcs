@@ -77,14 +77,9 @@ function panelalpha_ConfigOptions($params): ?array
                 die();
             }
 
-            $usageItems = UsageItem::getUsageItems($_REQUEST['id']);
-            if ($usageItems->isEmpty()) {
-                UsageItem::createUsageItems($_REQUEST['id']);
-            }
-
             $product = Product::findOrFail($_REQUEST['id']);
             $product->setConfigOptionsEnabledWhenProductCreated();
-
+            $usageItems = UsageItem::getUsageItems($_REQUEST['id']);
 
             $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
             if (!$serverGroup) {
@@ -113,6 +108,7 @@ function panelalpha_ConfigOptions($params): ?array
             $view->assign('product', $product);
             $view->assign('MGLANG', $MGLANG);
             $view->assign('usageItems', $usageItems);
+            $view->assign('version', Helper::getVersion());
             $data['content'] = $view->fetch('productModuleSettings.tpl');
         } catch (\Exception $e) {
             $data['content'] = '<div class="errorbox">' . $e->getMessage() . '</span></div>';
@@ -180,6 +176,7 @@ function panelalpha_ConfigOptions($params): ?array
             $view->assign('selectedPackage', $selectedPackage);
             $view->assign('selectedPackagePlugins', $selectedPackagePlugins);
             $view->assign('selectedPackageThemes', $selectedPackageThemes);
+            $view->assign('version', Helper::getVersion());
             $data['content'] = $view->fetch('addonModuleSettings.tpl');
         } catch (\Exception $e) {
             $data['content'] = '<div class="errorbox">' . $e->getMessage() . '</span></div>';
@@ -272,7 +269,7 @@ function panelalpha_CreateAccount(array $params): string
 
         $automaticInstanceInstalling = $params['configoption2'];
         if ($automaticInstanceInstalling == 'on') {
-            $instanceName = Helper::getCustomField($params['serviceid'], 'Instance Name') ?? "My First Instance";
+            $instanceName = Helper::getInstanceName($params);
             $theme = $params['configoption3'] ?? "";
             $instance = $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id']);
 

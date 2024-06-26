@@ -5,15 +5,45 @@
         font-weight: bold;
     }
 
-    .package-settings {
-        display: inline-block;
-        width: 220px;
-        font-weight: bold;
-    }
-
     .subtitle {
         font-size: 12px;
         color: gray;
+    }
+
+    .version {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding-right: 8px;
+        font-size: 12px;
+        color: gray;
+    }
+
+    .config-field-advanced {
+        display: flex;
+        align-items: center;
+    }
+
+    .config-field-advanced-optional {
+        margin-left: 16px;
+    }
+
+    .modules-settings-advanced {
+        display: flex;
+        align-items: center;
+        background-color: #f8f8f8;
+        color: #333;
+        border-radius: 4px;
+        height: 44px;
+        margin: 4px 12px;
+        padding: 0 12px;
+    }
+
+    .modules-settings-advanced-label {
+        font-weight: normal;
+        margin: 0 12px;
+        width: 275px;
     }
 </style>
 <script type="text/javascript">
@@ -107,22 +137,6 @@
 		let manualTerminationCheckbox = $('[name="configoption[4]"]');
 		let ssoCheckbox = $('[name="configoption[5]"]');
 
-		let activeInstancesMetricCheckbox = $('[name="metric[active_instances]"');
-		let activeStatus;
-		if (activeInstancesMetricCheckbox.val() == 1) {
-			activeStatus = ''
-		} else {
-			activeStatus = 'on'
-		}
-
-		let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
-		let activeRemoteBackupsSizeStatus;
-		if (remoteBackupsSizeMetricCheckbox.val() == 1) {
-			activeRemoteBackupsSizeStatus = ''
-		} else {
-			activeRemoteBackupsSizeStatus = 'on'
-		}
-
 
 		$('#automatic').bootstrapSwitch({
 			size: 'small',
@@ -151,73 +165,53 @@
 			},
 		})
 
-		$('#metric_active_instances').bootstrapSwitch({
-			size: 'small',
-			onColor: 'success',
-			state: activeStatus,
-			onInit: () => {
-				this.value = activeStatus
-			},
-		})
-
-		$('#metric_remote_backups_size').bootstrapSwitch({
-			size: 'small',
-			onColor: 'success',
-			state: activeRemoteBackupsSizeStatus,
-			onInit: () => {
-				this.value = activeRemoteBackupsSizeStatus
-			},
-		})
-
-    if (automaticCheckbox.val() === 'on') {
-			$('.default-theme').show();
-		} else {
-			$('.default-theme').hide();
-		}
-
-
 		$('#automatic').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
-				automaticCheckbox.val('on')
-				$('.default-theme').show();
+				automaticCheckbox.val('on');
+				$('.config-field-advanced-optional').show();
 			} else {
-				automaticCheckbox.val('')
-				$('.default-theme').hide();
+				automaticCheckbox.val('');
+				$('.config-field-advanced-optional').hide();
 			}
 		});
 		$('#manual-termination').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
-				manualTerminationCheckbox.val('on')
+				manualTerminationCheckbox.val('on');
 			} else {
-				manualTerminationCheckbox.val('')
+				manualTerminationCheckbox.val('');
 			}
 		});
-
 		$('#sso').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
-				ssoCheckbox.val('on')
+				ssoCheckbox.val('on');
 			} else {
-				ssoCheckbox.val('')
+				ssoCheckbox.val('');
 			}
 		});
 
-		$('#metric_active_instances').on('switchChange.bootstrapSwitch', function (event, state) {
+		//Automatic Instance Provisioning - Advanced
+		if (automaticCheckbox.val() === 'on') {
+			$('.config-field-advanced-optional').show();
+		} else {
+			$('.config-field-advanced-optional').hide();
+		}
+
+		let showInstanceNameFieldOnOrderForm = $('[name="configoption[8]"]');
+		$('#show-instance-name-on-order-form').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: showInstanceNameFieldOnOrderForm.val(),
+			onInit: () => {
+				this.value = showInstanceNameFieldOnOrderForm.val()
+			}
+		})
+		$('#show-instance-name-on-order-form').on('switchChange.bootstrapSwitch', function (event, state) {
 			if (state) {
-				activeInstancesMetricCheckbox.val(0)
+				showInstanceNameFieldOnOrderForm.val('on');
 			} else {
-				activeInstancesMetricCheckbox.val(1)
+				showInstanceNameFieldOnOrderForm.val('');
 			}
 		});
-
-		$('#metric_remote_backups_size').on('switchChange.bootstrapSwitch', function (event, state) {
-			if (state) {
-				remoteBackupsSizeMetricCheckbox.val(0)
-			} else {
-				remoteBackupsSizeMetricCheckbox.val(1)
-			}
-		});
-
-
 		$('#select-default-theme').select2({
 			width: 300,
 			placeholder: "Select default instance theme",
@@ -242,6 +236,79 @@
 			},
 		});
 
+
+		/**
+		 * Usage metric
+		 */
+		let activeInstancesMetricCheckbox = $('[name="metric[active_instances]"');
+		let activeStatus;
+		if (activeInstancesMetricCheckbox.val() == 1) {
+			activeStatus = ''
+		} else {
+			activeStatus = 'on'
+		}
+		$('#metric_active_instances').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: activeStatus,
+			onInit: () => {
+				this.value = activeStatus
+			},
+		})
+		$('#metric_active_instances').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				activeInstancesMetricCheckbox.val(0)
+			} else {
+				activeInstancesMetricCheckbox.val(1)
+			}
+		});
+
+
+		let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
+		let activeRemoteBackupsSizeStatus;
+		if (remoteBackupsSizeMetricCheckbox.val() == 1) {
+			activeRemoteBackupsSizeStatus = ''
+		} else {
+			activeRemoteBackupsSizeStatus = 'on'
+		}
+		$('#metric_remote_backups_size').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: activeRemoteBackupsSizeStatus,
+			onInit: () => {
+				this.value = activeRemoteBackupsSizeStatus
+			},
+		})
+		$('#metric_remote_backups_size').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				remoteBackupsSizeMetricCheckbox.val(0)
+			} else {
+				remoteBackupsSizeMetricCheckbox.val(1)
+			}
+		});
+
+		let DiskUsageMetricCheckbox = $('[name="metric[disk_usage]"');
+		let diskUsageStatus;
+		if (DiskUsageMetricCheckbox.val() == 1) {
+			diskUsageStatus = ''
+		} else {
+			diskUsageStatus = 'on'
+		}
+		$('#metric_disk_usage').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: diskUsageStatus,
+			onInit: () => {
+				this.value = diskUsageStatus
+			},
+		})
+		$('#metric_disk_usage').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				DiskUsageMetricCheckbox.val(0)
+			} else {
+				DiskUsageMetricCheckbox.val(1)
+			}
+		});
 	});
 </script>
 
@@ -249,7 +316,7 @@
   <tbody>
   <tr>
     <td class="fieldlabel" width="20%">PanelAlpha Plan</td>
-    <td class="fieldarea">
+    <td class="fieldarea" style="position: relative;">
       <select id="select-plan" name="configoption[1]" class="form-control select-inline">
           {foreach $plans as $plan}
             <option value="{$plan['id']}"
@@ -281,8 +348,12 @@
             >{$plan['name']}</option>
           {/foreach}
       </select>
+        {if $version}
+          <p class="version">v{$version}</p>
+        {/if}
       <input type="hidden" name="configoption[6]" value="">
-      <input id="onboarding-ask-for-domain" type="hidden" name="configoption[7]" value="{$selectedPlan['config']['onboarding']['ask_for_domain']}">
+      <input id="onboarding-ask-for-domain" type="hidden" name="configoption[7]"
+             value="{$selectedPlan['config']['onboarding']['ask_for_domain']}">
     </td>
   </tr>
   </tbody>
@@ -419,25 +490,34 @@
       <span class="subtitle">Automatically installs a WordPress instance when the service is provisioned by WHMCS</span>
     </td>
     <td class="fieldarea">
-      <table>
-        <tbody>
-        <tr>
-          <td style="padding: 0;">
-            <input id="automatic" type="checkbox" name="automatic" class="switch">
-            <input type="hidden" name="configoption[2]" value="{$product->configoption2}">
-          </td>
-          <td class="default-theme" style="padding-left: 48px; text-align: end;">Default instance theme</td>
-          <td class="default-theme" style="padding: 0;">
+      <div class="config-field-advanced">
+        <div>
+          <input id="automatic" type="checkbox" name="automatic" class="switch">
+          <input type="hidden" name="configoption[2]" value="{$product->configoption2}">
+        </div>
+        <div class="config-field-advanced-optional">
+          <div class="modules-settings-advanced">
+            <label class="modules-settings-advanced-label">Default Instance Theme</label>
             <select id="select-default-theme" class="form-control" name="configoption[3]">
                 {if $product->configoption3}
                   <option value="{$product->configoption3}"
-                          selected="selected">{$product->configoption3|replace:'-':" "|capitalize}</option>
+                          selected="selected">{$product->configoption3|replace:'-':" "|capitalize}
+                  </option>
                 {/if}
             </select>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+          </div>
+          <div id="default-instance-name" class="modules-settings-advanced">
+            <label class="modules-settings-advanced-label">Default Instance Name</label>
+            <input type="text" class="form-control input-inline input-300" name="configoption[9]"
+                   value="{$product->configoption9}" placeholder="Enter Default Instance Name"/>
+          </div>
+          <div class="modules-settings-advanced">
+            <label class="modules-settings-advanced-label">Show Instance Name Field on Order Form</label>
+            <input id="show-instance-name-on-order-form" type="checkbox" name="show-instance-name" class="switch">
+            <input type="hidden" name="configoption[8]" value="{$product->configoption8}">
+          </div>
+        </div>
+      </div>
     </td>
   </tr>
   <tr>

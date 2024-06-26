@@ -36,6 +36,12 @@ class MetricsProvider implements ProviderInterface
                 MetricInterface::TYPE_SNAPSHOT,
                 new GigaBytes('remote_backups_size')
             ),
+            new Metric(
+                'disk_usage',
+                'Disk Usage Size',
+                MetricInterface::TYPE_SNAPSHOT,
+                new GigaBytes('disk_usage')
+            ),
         ];
     }
 
@@ -47,13 +53,16 @@ class MetricsProvider implements ProviderInterface
     {
         $server = Server::findOrFail($this->moduleParams['serverid']);
         $connection = new PanelAlphaApi($server->toArray());
-        $services = $connection->getInstancesServices();
+        $data = $connection->getServicesStats();
+
         $usage = [];
-        foreach ($services as $id => $count) {
+        foreach ($data as $serviceId => $stats) {
             $data = [
-                'active_instances' => $count
+                'active_instances' => $stats['active_instances'],
+                'remote_backups_size' => $stats['remote_backups_size'],
+                'disk_usage' => $stats['disk_usage']
             ];
-            $usage[$id] = $this->wrapUserData($data);
+            $usage[$serviceId] = $this->wrapUserData($data);
         }
 
         return $usage;
@@ -71,11 +80,12 @@ class MetricsProvider implements ProviderInterface
         }
         $server = Server::findOrFail($this->moduleParams['serverid']);
         $connection = new PanelAlphaApi($server->toArray());
-        $data = $connection->getInstancesAssignedToService($panelalphaServiceId);
+        $data = $connection->getServiceStats($panelalphaServiceId);
 
         $data = [
-            'active_instances' => count($data['active_instances']),
-            'remote_backups_size' => $data['remote_backups_size']
+            'active_instances' => $data['active_instances'],
+            'remote_backups_size' => $data['remote_backups_size'],
+            'disk_usage' => $data['disk_usage']
         ];
 
         return $this->wrapUserData($data);

@@ -10,7 +10,8 @@ use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
 
 class Helper
 {
-    public static function generateRandomString(int $length) {
+    public static function generateRandomString(int $length)
+    {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $randomString = '';
 
@@ -115,5 +116,40 @@ class Helper
         $response = $response->withStatus(404);
         (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
         exit;
+    }
+
+    /**
+     * @param array $params
+     * @return string
+     */
+    public static function getInstanceName(array $params): string
+    {
+        $instanceName = self::getCustomField($params['serviceid'], 'Instance Name');
+        if (!empty($instanceName)) {
+            return $instanceName;
+        }
+
+        $instanceName = $params['configoption9'];
+        if (!empty($instanceName)) {
+            return $instanceName;
+        }
+
+        return "";
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getVersion(): ?string
+    {
+        $filepath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'whmcs.json';
+
+        if (!file_exists($filepath)) {
+            return null;
+        }
+
+        $content = file_get_contents($filepath);
+        $info = json_decode($content, true);
+        return $info['version'];
     }
 }

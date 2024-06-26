@@ -11,8 +11,11 @@ $_LANG['aa']['product']['onboarding']['description']['super_quick'] = 'This is t
 $_LANG['aa']['product']['server']['cpanel'] = 'cPanel';
 $_LANG['aa']['product']['server']['directadmin'] = 'Direct Admin';
 $_LANG['aa']['product']['server']['panelalpha'] = 'PanelAlpha';
+$_LANG['aa']['product']['server']['plesk'] = 'Plesk';
 
 $_LANG['aa']['product']['dns_server']['powerdns'] = 'PowerDNS';
+$_LANG['aa']['product']['dns_server']['cloudflare'] = 'Cloudflare';
+$_LANG['aa']['product']['dns_server']['cpanel-dns-only'] = 'cPanel DNSOnly';
 
 $_LANG['aa']['product']['email_server']['zimbra'] = 'Zimbra';
 $_LANG['aa']['product']['email_server']['mailcow'] = 'Mailcow';

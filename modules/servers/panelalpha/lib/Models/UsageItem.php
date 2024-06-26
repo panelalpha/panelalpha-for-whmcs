@@ -25,33 +25,42 @@ class UsageItem extends Model
 
     protected static $usageItems = [
         'active_instances',
-        'remote_backups_size'
+        'remote_backups_size',
+        'disk_usage'
     ];
 
     public static function getUsageItems(int $productId)
     {
-        return self::where('rel_id', $productId)
-            ->where('module_type', 'servers')
-            ->where('module', 'panelalpha')
-            ->get();
-    }
+        $usageItems = [];
+        foreach (self::$usageItems as $usageItemName) {
+            $item = self::where('rel_id', $productId)
+                ->where('metric', $usageItemName)
+                ->where('module_type', 'servers')
+                ->where('module', 'panelalpha')
+                ->first();
 
-    public static function createUsageItems(int $productId)
-    {
-        foreach (self::$usageItems as $usageItem) {
-            self::insert([
-                'rel_type' => 'Product',
-                'rel_id' => $productId,
-                'module_type' => 'servers',
-                'module' => 'panelalpha',
-                'metric' => $usageItem,
-                'included' => '0.00000',
-                'is_hidden' => 1
-            ]);
+            if (!$item) {
+                self::insert([
+                    'rel_type' => 'Product',
+                    'rel_id' => $productId,
+                    'module_type' => 'servers',
+                    'module' => 'panelalpha',
+                    'metric' => $usageItemName,
+                    'included' => '0.00000',
+                    'is_hidden' => 1
+                ]);
+                $item = self::where('rel_id', $productId)
+                    ->where('metric', $usageItemName)
+                    ->where('module_type', 'servers')
+                    ->where('module', 'panelalpha')
+                    ->first();
+            }
+            $usageItems[] = $item;
         }
+        return $usageItems;
     }
 
-    public static function setHiddenField(string $key,  string $value)
+    public static function setHiddenField(string $key, string $value)
     {
         self::where('metric', $key)
             ->where('rel_id', $_REQUEST['id'])

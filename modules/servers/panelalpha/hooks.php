@@ -96,12 +96,14 @@ add_hook('ProductEdit', 1, function ($params) {
 
     if ($product->servertype === 'panelalpha') {
         $isAutoInstallInstance = $product->configoption2 === 'on';
+        $showInstanceNameFieldOnOrderForm = $product->configoption8 === 'on';
+
         CustomField::where([
             ['type', 'product'],
             ['relid', $params['pid']],
             ['fieldname', 'Instance Name']
         ])->update([
-            'showorder' => $isAutoInstallInstance ? 'on' : ''
+            'showorder' => $isAutoInstallInstance && $showInstanceNameFieldOnOrderForm ? 'on' : ''
         ]);
 
         $product->setShowDomainOption();

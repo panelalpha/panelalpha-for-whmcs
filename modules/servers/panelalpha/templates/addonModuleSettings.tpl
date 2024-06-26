@@ -15,6 +15,16 @@
         font-size: 12px;
         color: gray;
     }
+
+    .version {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding-right: 8px;
+        font-size: 12px;
+        color: gray;
+    }
 </style>
 
 <script type="text/javascript">
@@ -34,7 +44,8 @@
     <tbody>
     <tr>
         <td class="fieldlabel" width="20%">Package</td>
-        <td class="fieldarea"><select id="select-package" name="panelalpha-package" class="form-control select-inline">
+        <td class="fieldarea" style="position: relative;">
+            <select id="select-package" name="panelalpha-package" class="form-control select-inline">
                 {foreach $packages as $package}
                     <option value="{$package['id']}"
                             data-plugin_automation="{$MGLANG['aa']['addon']['module_settings']['plugin_automation'][{$package['plugin_automation']}]}"
@@ -47,6 +58,9 @@
                     >{$package['name']}</option>
                 {/foreach}
             </select>
+            {if $version}
+                <p class="version">v{$version}</p>
+            {/if}
         </td>
     </tr>
     </tbody>

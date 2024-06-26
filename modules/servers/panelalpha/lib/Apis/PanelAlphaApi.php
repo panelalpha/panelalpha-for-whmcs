@@ -120,9 +120,9 @@ class PanelAlphaApi
      * @return array|null
      * @throws Exception
      */
-    public function getInstancesAssignedToService(int $serviceId): ?array
+    public function getServiceStats(int $serviceId): ?array
     {
-        $endpoint = 'services/' . $serviceId . '/instances';
+        $endpoint = 'services/' . $serviceId . '/stats';
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
@@ -132,10 +132,10 @@ class PanelAlphaApi
      * @return array|null
      * @throws Exception
      */
-    public function getInstancesServices(): array
+    public function getServicesStats(): array
     {
         try {
-            $endpoint = 'services/instances';
+            $endpoint = 'services/stats';
             $method = 'GET';
             $this->request->setAction(__FUNCTION__);
             return $this->request->call($method, $endpoint);
