@@ -3,7 +3,6 @@
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
 use \Illuminate\Database\Eloquent\Model;
-use WHMCS\Module\Server\PanelAlpha\Helper;
 
 /**
  * @property string $configoption1
@@ -14,7 +13,12 @@ use WHMCS\Module\Server\PanelAlpha\Helper;
  * @property string $configoption6
  * @property bool $showdomainoptions
  * @property string $configoption7
+ * @property string $configoption8
+ * @property int $id
+ * @property string $servertype
+ * @property ServerGroup $serverGroup
  * @method static findOrFail(mixed $id)
+ * @method save()
  */
 class Product extends Model
 {
@@ -103,6 +107,31 @@ class Product extends Model
         'is_featured'
     ];
 
+
+    private static array $customFields = [
+        'Instance Name' => [
+            'type' => 'product',
+            'fieldname' => 'Instance Name',
+            'fieldtype' => 'text',
+            'showorder' => 'on',
+            'adminonly' => ''
+        ],
+        'Service ID' => [
+            'type' => 'product',
+            'fieldname' => 'Service ID',
+            'fieldtype' => 'text',
+            'showorder' => '',
+            'adminonly' => 'on',
+        ],
+        'User ID' => [
+            'type' => 'product',
+            'fieldname' => 'User ID',
+            'fieldtype' => 'text',
+            'showorder' => '',
+            'adminonly' => 'on'
+        ]
+    ];
+
     public function serverGroup()
     {
         return $this->belongsTo('WHMCS\Module\Server\PanelAlpha\Models\ServerGroup', 'servergroup');
@@ -111,6 +140,30 @@ class Product extends Model
     public function customFields()
     {
         return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
+    }
+
+    /**
+     * @return void
+     */
+    public function createCustomFieldsIfNotExists(): void
+    {
+        foreach (self::$customFields as $customFieldName => $values) {
+            $customField = CustomField::where('relid', $this->id)
+                ->where('type', 'product')
+                ->where('fieldname', $customFieldName)
+                ->first();
+
+            if (!$customField) {
+                CustomField::insert([
+                    'type' => $values['type'],
+                    'relid' => $this->id,
+                    'fieldname' => $customFieldName,
+                    'fieldtype' => $values['fieldtype'],
+                    'showorder' => $values['showorder'],
+                    'adminonly' => $values['adminonly']
+                ]);
+            }
+        }
     }
 
     /**
@@ -151,15 +204,9 @@ class Product extends Model
         return $this->serverGroup->getFirstServer();
     }
 
-    /**
-     * @param array $config
-     * @return void
-     */
-    public function saveConfigOptions(array $config): void
+    public function saveConfigOption(string $key, string $value): void
     {
-        foreach ($config as $key => $value) {
-            $this->{'configoption' . $key} = $value;
-        }
+        $this->{'configoption' . $key} = $value;
         $this->save();
     }
 
@@ -190,5 +237,17 @@ class Product extends Model
 
         $this->showdomainoptions = false;
         $this->save();
+    }
+
+    /**
+     * @param string $metric
+     * @param string $status
+     * @return void
+     */
+    public function setUsageItemHiddenStatus(string $metric, string $status): void
+    {
+        UsageItem::where('metric', $metric)
+            ->where('rel_id', $this->id)
+            ->update(['is_hidden' => $status]);
     }
 }

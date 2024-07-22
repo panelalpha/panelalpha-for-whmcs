@@ -7,6 +7,7 @@ use \Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static where(string $column, string $value)
+ * @method static findOrFail(int $id)
  * @property $servers
  */
 class ServerGroup extends Model

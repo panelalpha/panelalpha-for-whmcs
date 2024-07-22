@@ -21,9 +21,11 @@ class LocalApi
         return localAPI($command, $postData);
     }
 
-    public static function sendUserEmail(string $templateName, array $params)
+    public static function sendUserEmail(string $templateName, string $language, array $params)
     {
-        $emailTemplate = EmailTemplate::where('name', $templateName)->first();
+        $emailTemplate = EmailTemplate::where('name', $templateName)
+            ->where('language', $language)
+            ->first();
 
 
         $command = 'SendEmail';

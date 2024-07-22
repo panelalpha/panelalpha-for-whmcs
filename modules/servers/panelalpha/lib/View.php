@@ -2,6 +2,10 @@
 
 namespace WHMCS\Module\Server\PanelAlpha;
 
+/**
+ * @method assign(string $key, mixed $value)
+ * @method fetch(string $template)
+ */
 class View extends \Smarty
 {
     public function __construct()

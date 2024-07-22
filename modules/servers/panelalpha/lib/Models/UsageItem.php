@@ -59,11 +59,4 @@ class UsageItem extends Model
         }
         return $usageItems;
     }
-
-    public static function setHiddenField(string $key, string $value)
-    {
-        self::where('metric', $key)
-            ->where('rel_id', $_REQUEST['id'])
-            ->update(['is_hidden' => $value]);
-    }
 }

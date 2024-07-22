@@ -4,8 +4,6 @@ use GuzzleHttp\Exception\GuzzleException;
 use WHMCS\Module\Server\PanelAlpha\Helper;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\Module\Server\PanelAlpha\Models\Addon;
-use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
-use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 use WHMCS\Module\Server\PanelAlpha\Models\Hosting;
 use WHMCS\Module\Server\PanelAlpha\Models\Product;
 use WHMCS\Module\Server\PanelAlpha\Models\Server;
@@ -62,7 +60,7 @@ function panelalpha_ConfigOptions($params): ?array
 {
     $MGLANG = Lang::getLang();
 
-    if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
+    if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
         try {
             $view = new View();
             if (!Helper::isServerGroupWithPanelAlphaServer()) {
@@ -77,14 +75,13 @@ function panelalpha_ConfigOptions($params): ?array
                 die();
             }
 
+            /** @var Product $product */
             $product = Product::findOrFail($_REQUEST['id']);
+            $product->createCustomFieldsIfNotExists();
             $product->setConfigOptionsEnabledWhenProductCreated();
             $usageItems = UsageItem::getUsageItems($_REQUEST['id']);
 
-            $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
-            if (!$serverGroup) {
-                throw new Exception('No Server Group');
-            }
+            $serverGroup = ServerGroup::findOrFail((int)$_POST['servergroup']);
             $server = $serverGroup->getFirstServer();
             $connection = new PanelAlphaApi($server);
 
@@ -118,29 +115,25 @@ function panelalpha_ConfigOptions($params): ?array
 
     }
 
-    if ($_REQUEST['action'] == 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
-        foreach ($_POST['metric'] as $key => $value) {
-            UsageItem::setHiddenField($key, $value);
-        }
-        if (!empty($_POST['configoption'])) {
-            $product = Product::findOrFail($_REQUEST['id']);
-            $product->saveConfigOptions($_POST['configoption']);
-        }
-        CustomField::createProductCustomFieldsIfNotExist($_REQUEST['id'], $_POST['configoption']);
-        EmailTemplate::createManualServiceTerminationEmailTemplate();
-        EmailTemplate::createWelcomeEmailTemplate();
-        EmailTemplate::createWelcomeNewUserEmailTemplate();
-        return [];
+    if ($_REQUEST['action'] === 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
+        /** @var Product $product */
+        $product = Product::findOrFail($_REQUEST['id']);
 
+        foreach ($_POST['metric'] as $metric => $status) {
+            $product->setUsageItemHiddenStatus($metric, $status);
+        }
+
+        foreach ($_POST['configoption'] as $key => $value) {
+            $product->saveConfigOption($key, $value);
+        }
+
+        return [];
     }
 
-    if ($_REQUEST['action'] != 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
+    if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php') {
         try {
             $view = new View();
-            $serverGroup = ServerGroup::find((int)$_POST['servergroup']);
-            if (!$serverGroup) {
-                throw new Exception('No Server Group');
-            }
+            $serverGroup = ServerGroup::findOrFail((int)$_POST['servergroup']);
             $server = $serverGroup->getFirstServer();
             if (empty($server)) {
                 $data['content'] = $view->fetch('noServerMessage.tpl');
@@ -187,7 +180,7 @@ function panelalpha_ConfigOptions($params): ?array
 
     if (
         $_POST['panelalpha-package']
-        && $_REQUEST['action'] == 'save'
+        && $_REQUEST['action'] === 'save'
         && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php'
     ) {
         Capsule::table('tblmodule_configuration')
@@ -247,7 +240,7 @@ function panelalpha_CreateAccount(array $params): string
                 'login_url' => $dataUrl['url'],
                 'service_id' => $params['serviceid'],
             ];
-            LocalApi::sendUserEmail('PanelAlpha Welcome New User Email', $mailParams);
+            LocalApi::sendUserEmail('PanelAlpha Welcome New User Email', $params['clientsdetails']['language'], $mailParams);
         }
         if (!$user) {
             throw new Exception('No user from PanelAlpha');
@@ -264,6 +257,9 @@ function panelalpha_CreateAccount(array $params): string
             throw new Exception('No service from PanelAlpha');
         }
 
+        /** @var Product $product */
+        $product = Product::findOrFail($params['pid']);
+        $product->createCustomFieldsIfNotExists();
         Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', $service['id']);
         Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
 
@@ -387,8 +383,8 @@ function panelalpha_TerminateAccount(array $params): string
                 return 'The account must be deleted manually';
             }
 
-            $instances = $connection->getInstancesAssignedToService($params['customfields']['Service ID']);
-            foreach ($instances['active_instances'] as $instance) {
+            $stats = $connection->getServiceStats($params['customfields']['Service ID']);
+            foreach ($stats['active_instances'] as $instance) {
                 $connection->deleteInstance($instance['id']);
             }
             $connection->deleteService($params['customfields']['Service ID']);

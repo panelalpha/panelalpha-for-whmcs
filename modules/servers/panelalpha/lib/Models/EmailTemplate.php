@@ -23,96 +23,63 @@ class EmailTemplate extends Model
         'plaintext'
     ];
 
-    public static function createManualServiceTerminationEmailTemplate(): void
+    private static array $emailTemplates = [
+        'PanelAlpha Service Termination' => [
+            'type' => 'admin',
+            'name' => 'PanelAlpha Service Termination',
+            'message' => 'serviceTerminationEmail.html',
+            'subject' => 'Manual Service Termination',
+
+        ],
+        'PanelAlpha Welcome Email' => [
+            'type' => 'product',
+            'name' => 'PanelAlpha Welcome Email',
+            'message' => 'welcomeEmail.html',
+            'subject' => 'Welcome to PanelAlpha - Your Ultimate Solution for WordPress Management!',
+        ],
+        'PanelAlpha Welcome New User Email' => [
+            'type' => 'product',
+            'name' => 'PanelAlpha Welcome New User Email',
+            'message' => 'welcomeNewUser.html',
+            'subject' => 'Welcome to PanelAlpha  - Your Login Credentials',
+        ]
+    ];
+
+    /**
+     * @return void
+     */
+    public static function createEmailTemplatesIfNotExist(): void
     {
-        $emailFile = ROOTDIR . DIRECTORY_SEPARATOR .
-            "modules" . DIRECTORY_SEPARATOR .
-            "servers" . DIRECTORY_SEPARATOR .
-            "panelalpha" . DIRECTORY_SEPARATOR .
-            "templates" . DIRECTORY_SEPARATOR .
-            "emails" . DIRECTORY_SEPARATOR .
-            "serviceTerminationEmail.html";
+        foreach (self::$emailTemplates as $template) {
+            $emailTemplate = self::where('name', $template['name'])
+                ->where('type', $template['type'])
+                ->first();
 
-        self::updateOrInsert(
-            [
-                'type' => 'admin',
-                'name' => 'PanelAlpha Service Termination',
-
-            ],
-            [
-                'message' => file_get_contents($emailFile),
-                'subject' => 'Manual Service Termination',
-                'attachments' => '',
-                'fromname' => '',
-                'fromemail' => '',
-                'disabled' => 0,
-                'custom' => 0,
-                'copyto' => '',
-                'blind_copy_to' => '',
-                'plaintext' => 0
-            ]
-        );
-    }
-
-    public static function createWelcomeEmailTemplate(): void
-    {
-        $emailFile = ROOTDIR . DIRECTORY_SEPARATOR .
-            "modules" . DIRECTORY_SEPARATOR .
-            "servers" . DIRECTORY_SEPARATOR .
-            "panelalpha" . DIRECTORY_SEPARATOR .
-            "templates" . DIRECTORY_SEPARATOR .
-            "emails" . DIRECTORY_SEPARATOR .
-            "welcomeEmail.html";
+            if (!$emailTemplate) {
+                $emailTemplateFile = ROOTDIR . DIRECTORY_SEPARATOR .
+                    "modules" . DIRECTORY_SEPARATOR .
+                    "servers" . DIRECTORY_SEPARATOR .
+                    "panelalpha" . DIRECTORY_SEPARATOR .
+                    "templates" . DIRECTORY_SEPARATOR .
+                    "emails" . DIRECTORY_SEPARATOR .
+                    $template['message'];
 
 
-        self::updateOrInsert(
-            [
-                'type' => 'product',
-                'name' => 'PanelAlpha Welcome Email',
-            ],
-            [
-                'message' => file_get_contents($emailFile),
-                'subject' => 'Welcome to PanelAlpha - Your Ultimate Solution for WordPress Management!',
-                'attachments' => '',
-                'fromname' => '',
-                'fromemail' => '',
-                'disabled' => 0,
-                'custom' => 0,
-                'copyto' => '',
-                'blind_copy_to' => '',
-                'plaintext' => 0
-            ]
-        );
-    }
-
-    public static function createWelcomeNewUserEmailTemplate()
-    {
-        $emailFile = ROOTDIR . DIRECTORY_SEPARATOR .
-            "modules" . DIRECTORY_SEPARATOR .
-            "servers" . DIRECTORY_SEPARATOR .
-            "panelalpha" . DIRECTORY_SEPARATOR .
-            "templates" . DIRECTORY_SEPARATOR .
-            "emails" . DIRECTORY_SEPARATOR .
-            "welcomeNewUser.html";
-
-
-        self::updateOrInsert(
-            [
-                'type' => 'product',
-                'name' => 'PanelAlpha Welcome New User Email',
-            ],
-            [
-                'message' => file_get_contents($emailFile),
-                'subject' => 'Welcome to PanelAlpha  - Your Login Credentials',
-                'attachments' => '',
-                'fromname' => '',
-                'fromemail' => '',
-                'disabled' => 0,
-                'custom' => 0,
-                'copyto' => '',
-                'blind_copy_to' => '',
-                'plaintext' => 0
-            ]
-        );
+                self::insert([
+                    'type' => $template['type'],
+                    'name' => $template['name'],
+                    'message' => file_get_contents($emailTemplateFile),
+                    'subject' => $template['subject'],
+                    'attachments' => '',
+                    'fromname' => '',
+                    'fromemail' => '',
+                    'disabled' => 0,
+                    'custom' => 0,
+                    'copyto' => '',
+                    'blind_copy_to' => '',
+                    'plaintext' => 0
+                ]);
+            }
+        }
     }
 }

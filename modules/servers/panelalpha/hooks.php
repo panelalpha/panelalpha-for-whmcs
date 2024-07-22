@@ -92,6 +92,7 @@ add_hook('AdminAreaHeadOutput', 1, function ($params) {
 });
 
 add_hook('ProductEdit', 1, function ($params) {
+    /** @var Product $product */
     $product = Product::findOrFail($params['pid']);
 
     if ($product->servertype === 'panelalpha') {
@@ -115,6 +116,8 @@ add_hook('ServerAdd', 1, function ($params) {
     $server = Server::findOrFail($params['serverid']);
     if ($server->type === 'panelalpha') {
         $server->setHostname();
+
+        EmailTemplate::createEmailTemplatesIfNotExist();
     }
 });
 
