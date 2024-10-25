@@ -42,7 +42,7 @@ class PanelAlphaApi
         $endpoint = 'plans?per_page=100';
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
-        return  $this->request->call($method, $endpoint);
+        return $this->request->call($method, $endpoint);
     }
 
     /**
@@ -55,7 +55,7 @@ class PanelAlphaApi
         $endpoint = 'users/email?email=' . $email;
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
-        return  $this->request->call($method, $endpoint);
+        return $this->request->call($method, $endpoint);
     }
 
 
@@ -74,7 +74,7 @@ class PanelAlphaApi
             'status' => 'active'
         ];
         $this->request->setAction(__FUNCTION__);
-        return  $this->request->call($method, $endpoint, $data);
+        return $this->request->call($method, $endpoint, $data);
     }
 
     /**
@@ -139,7 +139,8 @@ class PanelAlphaApi
             $method = 'GET';
             $this->request->setAction(__FUNCTION__);
             return $this->request->call($method, $endpoint);
-        } catch (Exception $exception) {}
+        } catch (Exception $exception) {
+        }
         return [];
     }
 
@@ -165,8 +166,11 @@ class PanelAlphaApi
     {
         $endpoint = 'services/' . $serviceId;
         $method = 'DELETE';
+        $data = [
+            'force_termination' => true
+        ];
         $this->request->setAction(__FUNCTION__);
-        $this->request->call($method, $endpoint);
+        $this->request->call($method, $endpoint, $data);
     }
 
     /**

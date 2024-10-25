@@ -15,4 +15,15 @@ class CustomFieldValue extends Model
         'relid',
         'value',
     ];
+
+    public function customField()
+    {
+        return $this->belongsTo(CustomField::class, 'fieldid');
+    }
+
+    public function hosting()
+    {
+        return $this->belongsTo(Hosting::class, 'relid');
+    }
+
 }

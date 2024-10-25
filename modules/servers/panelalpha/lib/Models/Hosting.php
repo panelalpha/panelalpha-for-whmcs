@@ -84,18 +84,25 @@ class Hosting extends EloquentModel
         return $this->belongsTo(Product::class, "packageid");
     }
 
+    public function customField()
+    {
+        return $this->hasMany(CustomField::class, "packageid");
+    }
+
+
     public static function getService(int $panelalphaServiceId)
     {
-        return self::join('tblproducts', 'tblproducts.id', '=', 'tblhosting.packageid')
-            ->join('tblcustomfields', 'tblcustomfields.relid', '=', 'tblproducts.id')
-            ->join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
-            ->where('tblcustomfields.type', 'product')
-            ->where('tblcustomfields.fieldname', 'Service ID')
-            ->where('tblproducts.servertype', 'panelalpha')
-            ->where('tblcustomfieldsvalues.value', $panelalphaServiceId)
-            ->select([
-                'tblhosting.*'
-            ])
+        $query = CustomFieldValue::with(['customField', 'hosting.product'])
+            ->whereHas('customField', function ($query) {
+                $query->where('fieldname', 'Service ID');
+                $query->where('type', 'product');
+            })
+            ->whereHas('hosting.product', function ($query) {
+                $query->where('servertype', 'panelalpha');
+            })
+            ->where('value', $panelalphaServiceId)
             ->first();
+
+        return $query->hosting;
     }
 }

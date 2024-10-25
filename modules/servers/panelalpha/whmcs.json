@@ -2,7 +2,7 @@
     "schema": "1.0",
     "type": "whmcs-provisioning",
     "name": "PanelAlpha",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "license": "",
     "category": "provisioning",
     "description": {
