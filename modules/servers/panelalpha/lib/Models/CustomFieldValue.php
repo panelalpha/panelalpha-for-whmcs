@@ -21,9 +21,8 @@ class CustomFieldValue extends Model
         return $this->belongsTo(CustomField::class, 'fieldid');
     }
 
-    public function hosting()
+    public function service()
     {
-        return $this->belongsTo(Hosting::class, 'relid');
+        return $this->belongsTo(Service::class, 'relid');
     }
-
 }

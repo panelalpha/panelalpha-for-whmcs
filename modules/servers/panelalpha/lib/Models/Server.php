@@ -50,7 +50,7 @@ class Server extends Model
     public function groups()
     {
         return $this->belongsToMany(
-            'WHMCS\Module\Server\PanelAlpha\Models\ServerGroup',
+            ServerGroup::class,
             'tblservergroupsrel',
             'serverid',
             'groupid'

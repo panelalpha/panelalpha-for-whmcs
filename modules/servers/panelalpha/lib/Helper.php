@@ -54,15 +54,20 @@ class Helper
     /**
      * @param int|null $serviceId
      * @param string $fieldName
-     * @return mixed
+     * @return mixed|null
      */
     public static function getCustomField(?int $serviceId, string $fieldName)
     {
-        return CustomField::join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
+        $value = CustomField::join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
             ->where('tblcustomfieldsvalues.relid', $serviceId)
             ->where('tblcustomfields.type', 'product')
             ->where('tblcustomfields.fieldname', $fieldName)
             ->value('value');
+
+        if (empty($value)) {
+            return null;
+        }
+        return $value;
     }
 
     /**

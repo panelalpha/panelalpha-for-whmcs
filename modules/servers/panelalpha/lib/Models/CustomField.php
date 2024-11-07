@@ -19,4 +19,11 @@ class CustomField extends Model
         'showorder',
         'adminonly'
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'relid')->whereHas('customFields', function ($query) {
+            $query->where('type', 'product');
+        });
+    }
 }

@@ -84,9 +84,15 @@
 				$('#email-server').html(selectedOption.data('server_type_name') + '\'s Email Server');
 				$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('server_type') + '.svg');
 			} else if (selectedOption.data('email_server')) {
-				$('#email-server-icon').show();
 				$('#email-server').html(selectedOption.data('email_server'));
-				$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('email_server_name') + '.svg');
+
+				if (selectedOption.data('email_server_icon')) {
+					$('#email-server-icon').show();
+					$('#email-server-icon').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/' + selectedOption.data('email_server_name') + '.svg');
+				} else {
+					$('#email-server-icon').hide();
+				}
+
 			} else {
 				$('#email-server').html("None");
 				$('#email-server-icon').hide();
@@ -336,9 +342,14 @@
                     {elseif $plan['dns_server_internal']}
                       data-dns_server_internal="true"
                     {/if}
-                    {if $plan['email_server_type']}
+                    {if $plan['email_server_type'] && $MGLANG['aa']['product']['email_server'][{$plan['email_server_type']}] neq ""}
                       data-email_server="{$MGLANG['aa']['product']['email_server'][{$plan['email_server_type']}]} ({$plan['email_server_name']})"
                       data-email_server_name="{$plan['email_server_type']}"
+                      data-email_server_icon="true"
+                    {elseif $plan['email_server_type']}
+                      data-email_server="{$plan['email_server_type']} ({$plan['email_server_name']})"
+                      data-email_server_name="{$plan['email_server_type']}"
+                      data-email_server_icon="false"
                     {elseif $plan['email_server_internal']}
                       data-email_server_internal="true"
                     {/if}
@@ -391,7 +402,7 @@
   </tr>
 
   {if $selectedPlan['server_group_name']}
-    <tr>
+    <tr id="server">
       <td></td>
       <td>
         <span class="plan-settings">Server Group: </span>
@@ -469,10 +480,16 @@
                style="padding-bottom: 2px; height: 22px;">
           <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s Email Server</span>
         {elseif $selectedPlan['email_server_type']}
-          <img id="email-server-icon"
-               src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
-               style="padding-bottom: 2px; height: 22px;">
-          <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
+            {if $MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}] eq ''}
+              <img id="email-server-icon" alt="Email Server Icon"
+                   style="padding-bottom: 2px; height: 22px; display: none;" src="">
+              <span id="email-server">{$selectedPlan['email_server_type']} ({$selectedPlan['email_server_name']})</span>
+            {else}
+              <img id="email-server-icon"
+                   src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
+                   style="padding-bottom: 2px; height: 22px;" alt="Email Server Icon">
+              <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
+            {/if}
         {else}
           <img id="email-server-icon" style="display: none; padding-bottom: 2px; height: 22px;">
           <span id="email-server">None</span>

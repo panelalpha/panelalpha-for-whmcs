@@ -2,8 +2,7 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
-use \Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Model;
 
 class EmailTemplate extends Model
 {

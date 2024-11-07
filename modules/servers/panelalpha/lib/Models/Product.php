@@ -2,7 +2,7 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $configoption1
@@ -134,7 +134,7 @@ class Product extends Model
 
     public function serverGroup()
     {
-        return $this->belongsTo('WHMCS\Module\Server\PanelAlpha\Models\ServerGroup', 'servergroup');
+        return $this->belongsTo(ServerGroup::class, 'servergroup');
     }
 
     public function customFields()

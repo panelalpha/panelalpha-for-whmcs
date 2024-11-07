@@ -299,4 +299,30 @@ class PanelAlphaApi
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
     }
+
+    /**
+     * @return array
+     * @throws Exception
+     */
+    public function getServices(): array
+    {
+        $endpoint = 'services';
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     * @throws Exception
+     */
+    public function getService(int $id): array
+    {
+        $endpoint = 'services/' . $id;
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
 }
+
