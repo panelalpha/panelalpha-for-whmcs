@@ -165,6 +165,7 @@ add_hook('CustomFieldSave', 1, function ($params) {
         ->where('type', 'product')
         ->find($params['fieldid']);
 
+    // return if no server id custom field for panelalpha
     if (!$serviceCustomField) {
         return [
             'value' => $params['value']
@@ -179,6 +180,13 @@ add_hook('CustomFieldSave', 1, function ($params) {
         ->find($params['relid']);
 
     if (!$service) {
+        return [
+            'value' => $params['value']
+        ];
+    }
+
+    // check if custom field value is not empty
+    if (empty($params['value'])) {
         return [
             'value' => $params['value']
         ];
