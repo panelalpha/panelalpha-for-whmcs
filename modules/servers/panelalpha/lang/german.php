@@ -12,6 +12,7 @@ $_LANG['aa']['product']['server']['cpanel'] = 'cPanel';
 $_LANG['aa']['product']['server']['directadmin'] = 'Direct Admin';
 $_LANG['aa']['product']['server']['panelalpha'] = 'PanelAlpha';
 $_LANG['aa']['product']['server']['plesk'] = 'Plesk';
+$_LANG['aa']['product']['server']['wp-cloud'] = 'WP Cloud';
 
 $_LANG['aa']['product']['dns_server']['powerdns'] = 'PowerDNS';
 $_LANG['aa']['product']['dns_server']['cloudflare'] = 'Cloudflare';
@@ -19,6 +20,7 @@ $_LANG['aa']['product']['dns_server']['cpanel-dns-only'] = 'cPanel DNSOnly';
 
 $_LANG['aa']['product']['email_server']['zimbra'] = 'Zimbra';
 $_LANG['aa']['product']['email_server']['mailcow'] = 'Mailcow';
+$_LANG['aa']['product']['email_server']['cpanel-email-server'] = 'cPanel';
 
 $_LANG['aa']['product']['assign_rule']['name']['specific_server'] = 'Spezifischer Server';
 $_LANG['aa']['product']['assign_rule']['description']['specific_server'] = 'Dienst wird auf einem spezifischen Server eingerichtet';
