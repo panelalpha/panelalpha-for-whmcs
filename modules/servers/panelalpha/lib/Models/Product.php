@@ -197,11 +197,11 @@ class Product extends Model
     }
 
     /**
-     * @return array
+     * @return Server|null
      */
-    public function getServer()
+    public function getServer(): ?Server
     {
-        return $this->serverGroup->getFirstServer();
+        return $this->serverGroup->servers->first();
     }
 
     public function saveConfigOption(string $key, string $value): void

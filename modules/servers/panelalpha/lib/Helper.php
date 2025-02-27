@@ -67,7 +67,9 @@ class Helper
         if (empty($value)) {
             return null;
         }
-        return $value;
+
+        $explodedValue = explode('|', $value);
+        return $explodedValue[0];
     }
 
     /**

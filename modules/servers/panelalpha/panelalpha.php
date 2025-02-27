@@ -15,6 +15,7 @@ use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\MetricsProvider;
 use WHMCS\Module\Server\PanelAlpha\View;
 use WHMCS\Service\Status;
+use GuzzleHttp\Client;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
@@ -61,7 +62,7 @@ function panelalpha_MetaData(): array
  */
 function panelalpha_ConfigOptions($params): ?array
 {
-    $MGLANG = Lang::getLang();
+    $LANG = Lang::getLang();
 
     if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
         try {
@@ -91,12 +92,20 @@ function panelalpha_ConfigOptions($params): ?array
             $plans = $connection->getPlans();
             $selectedPlan = $product->getPlanAssignedToProduct($plans);
 
-            $plans = array_map(function ($plan) {
-                $accountConfig = "";
+            $plans = array_map(function ($plan) use ($LANG) {
+                $accountConfig = [];
                 foreach ($plan['account_config'] as $key => $value) {
-                    $accountConfig .= $key . ":" . $value . ',';
+                    $key = !empty($LANG['aa']['product']['server']['config']['key'][$key])
+                        ? $LANG['aa']['product']['server']['config']['key'][$key]
+                        : $key;
+
+                    $value = !empty($LANG['aa']['product']['server']['config']['value'][$value])
+                        ? $LANG['aa']['product']['server']['config']['value'][$value]
+                        : $value;
+
+                    $accountConfig[$key] = $value;
                 }
-                $plan['server_config'] = substr($accountConfig, 0, -1) ?? "";
+                $plan['server_config'] = json_encode($accountConfig);
                 return $plan;
             }, $plans);
 
@@ -106,7 +115,7 @@ function panelalpha_ConfigOptions($params): ?array
             $view->assign('plans', $plans);
             $view->assign('selectedPlan', $selectedPlan);
             $view->assign('product', $product);
-            $view->assign('MGLANG', $MGLANG);
+            $view->assign('MGLANG', $LANG);
             $view->assign('usageItems', $usageItems);
             $view->assign('version', Helper::getVersion());
             $data['content'] = $view->fetch('productModuleSettings.tpl');
@@ -167,7 +176,7 @@ function panelalpha_ConfigOptions($params): ?array
             global $CONFIG;
 
             $view->assign('config', $CONFIG);
-            $view->assign('MGLANG', $MGLANG);
+            $view->assign('MGLANG', $LANG);
             $view->assign('packages', $packages);
             $view->assign('selectedPackage', $selectedPackage);
             $view->assign('selectedPackagePlugins', $selectedPackagePlugins);
@@ -275,7 +284,8 @@ function panelalpha_CreateAccount(array $params): string
         if ($automaticInstanceInstalling == 'on') {
             $instanceName = Helper::getInstanceName($params);
             $theme = $params['configoption3'] ?? "";
-            $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id']);
+            $location = Helper::getCustomField($params['serviceid'], 'location|Location');
+            $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id'], $location);
         }
     } catch (Exception $e) {
         return $e->getMessage();
@@ -492,24 +502,35 @@ function panelalpha_TestConnection(array $params): array
  */
 function panelalpha_ClientArea(array $params)
 {
+    if ($_REQUEST['sso'] === 'yes') {
+        $service = Service::find($params['serviceid']);
+
+        $userId = Helper::getCustomField($service->id, 'User ID');
+
+        $api = PanelAlphaApi::fromModel($service->serverModel);
+        $result = $api->getSsoToken($userId);
+
+        header("Location: {$result['url']}/sso-login?token={$result['token']}");
+        exit();
+    }
+
     global $CONFIG;
     $url = $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $params['serviceid'];
-
     try {
-        return array(
+        return [
             'tabOverviewModuleOutputTemplate' => 'templates/clientarea.tpl',
             'templateVariables' => [
                 'url' => $url,
                 'MGLANG' => Lang::getLang()
             ],
-        );
+        ];
     } catch (Exception $e) {
-        return array(
+        return [
             'tabOverviewReplacementTemplate' => 'error.tpl',
             'templateVariables' => [
                 'usefulErrorHelper' => $e->getMessage(),
             ],
-        );
+        ];
     }
 }
 
@@ -564,4 +585,26 @@ function panelalpha_ListAccounts(array $params): array
             'error' => $e->getMessage(),
         ];
     }
+}
+
+function panelalpha_AdminServicesTabFields($params): array
+{
+    if ($_REQUEST['sso'] === 'yes') {
+        $service = Service::find($params['serviceid']);
+
+        $server = $service->serverModel;
+        $userId = Helper::getCustomField($service->id, 'User ID');
+
+        $api = PanelAlphaApi::fromModel($server);
+        $result = $api->getLoginAsUserSsoToken($userId);
+
+        header("Location: {$result['url']}/sso-login?token={$result['token']}");
+        exit();
+    }
+
+    $LANG = Lang::getLang();
+
+    return [
+        $LANG['aa']['service']['panelalpha']['sso'] => '<a class="btn btn-default" onclick="window.open(window.location + \'&sso=yes\', \'_blank\')">' . $LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] . '</a>',
+    ];
 }

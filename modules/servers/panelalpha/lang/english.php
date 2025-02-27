@@ -14,6 +14,24 @@ $_LANG['aa']['product']['server']['panelalpha'] = 'PanelAlpha';
 $_LANG['aa']['product']['server']['plesk'] = 'Plesk';
 $_LANG['aa']['product']['server']['wp-cloud'] = 'WP Cloud';
 
+$_LANG['aa']['product']['server']['config']['key']['whm_package'] = 'WHM Package';
+$_LANG['aa']['product']['server']['config']['key']['geo_affinity'] = 'Default Location';
+$_LANG['aa']['product']['server']['config']['key']['allow_user_choose_location'] = 'User Can Choose Location';
+$_LANG['aa']['product']['server']['config']['key']['space_quota'] = 'Space Quota';
+$_LANG['aa']['product']['server']['config']['key']['php_workers'] = 'PHP Workers';
+$_LANG['aa']['product']['server']['config']['key']['default_ssh_access_enabled'] = 'SSH Access Enabled';
+$_LANG['aa']['product']['server']['config']['key']['allow_user_enable_ssh_access'] = 'User Can Enable SSH Access';
+$_LANG['aa']['product']['server']['config']['key']['burst_up_php_workers'] = 'Burst Up PHP Workers';
+$_LANG['aa']['product']['server']['config']['key']['ip_address'] = 'IP Address';
+$_LANG['aa']['product']['server']['config']['key']['package'] = 'Package';
+$_LANG['aa']['product']['server']['config']['key']['plan'] = 'Plan';
+$_LANG['aa']['product']['server']['config']['key']['plan_reseller'] = 'Plan Reseller';
+
+$_LANG['aa']['product']['server']['config']['value']['ams'] = 'Amsterdam, NL';
+$_LANG['aa']['product']['server']['config']['value']['bur'] = 'Los Angeles, CA, USA';
+$_LANG['aa']['product']['server']['config']['value']['dca'] = 'Ashburn, VA, USA';
+$_LANG['aa']['product']['server']['config']['value']['dfw'] = 'Dallas, TX, USA';
+
 $_LANG['aa']['product']['dns_server']['powerdns'] = 'PowerDNS';
 $_LANG['aa']['product']['dns_server']['cloudflare'] = 'Cloudflare';
 $_LANG['aa']['product']['dns_server']['cpanel-dns-only'] = 'cPanel DNSOnly';
@@ -36,5 +54,10 @@ $_LANG['aa']['addon']['module_settings']['plugin_automation']['no action'] = 'No
 $_LANG['aa']['addon']['module_settings']['theme_automation']['only install'] = 'Only Install';
 $_LANG['aa']['addon']['module_settings']['theme_automation']['no action'] = 'No Action';
 
+$_LANG['aa']['service']['panelalpha']['sso'] = 'SSO';
+$_LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] = 'Log in to PanelAlpha as User';
+
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'Log Into Your PanelAlpha';
+
+$_LANG['general']['none'] = 'None';

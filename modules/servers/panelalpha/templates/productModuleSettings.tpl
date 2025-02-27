@@ -1,7 +1,7 @@
 <style>
     .plan-settings {
         display: inline-block;
-        width: 120px;
+        width: 200px;
         font-weight: bold;
     }
 
@@ -45,6 +45,16 @@
         margin: 0 12px;
         width: 275px;
     }
+
+    .server-icon {
+        margin-right: 4px;
+    }
+
+    .plan-settings-cell-value {
+        display: flex;
+        align-items: center;
+    }
+
 </style>
 <script type="text/javascript">
 	$(document).ajaxStop(function () {
@@ -100,34 +110,37 @@
 
 			$('.account-config').remove();
 			let accountConfig = selectedOption.data('account_config');
-			accountConfig = accountConfig.split(',');
-			if (accountConfig[0]) {
-				accountConfig.forEach(function (config) {
-					let fields = config.split(':');
 
-					let transformedText = ""
-					if (fields[0] === 'whm_package') {
-						transformedText = "WHM Package";
-					} else {
-						transformedText = fields[0].replace(/_/g, " ").replace(/\b\w/g, function (match) {
-							return match.toUpperCase();
-						});
+			let config = JSON.parse(JSON.stringify(accountConfig));
+			Object.entries(config).forEach(([key, value]) => {
+				const trElement = $('<tr>');
+				trElement.addClass('account-config');
+				const td1 = $('<td>');
+				const td2 = $('<td>').attr('class', 'plan-settings-cell-value');
+
+				const span1 = $('<span>').addClass('plan-settings').attr('id', key).text(key + ':');
+
+				let span2 = $('<span>').attr('id', value);
+				if (value === null) {
+					span2.text();
+				} else if (value === true) {
+					span2.append($('<img>').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/checkIcon.svg').attr('style', 'height: 14px;'));
+
+					if (key === 'User Can Choose Location') {
+						span2.append($('<button id="button-allow-user-choose-location" style="margin-left: 12px;" class="btn btn-xs">Show Location On Order Form</button>'))
 					}
 
-					let transformedContent = fields[1].charAt(0).toUpperCase() + fields[1].substring(1);
+				} else if (value === false) {
+					span2.append($('<img>').attr('src', '{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/minusIcon.svg').attr('style', 'height: 14px;'));
+				} else {
+					span2.text(value);
+				}
 
-					const trElement = $('<tr>');
-					trElement.addClass('account-config');
-					const td1 = $('<td>');
-					const td2 = $('<td>');
-					const span1 = $('<span>').addClass('plan-settings').attr('id', transformedText).text(transformedText + ':');
-					const span2 = $('<span>').attr('id', fields[1]).text(transformedContent);
+				td2.append(span1, span2);
+				trElement.append(td1, td2);
+				$('#server').after(trElement);
 
-					td2.append(span1, ' ', span2);
-					trElement.append(td1, td2);
-					$('#server').after(trElement);
-				})
-			}
+			});
 		});
 
 		const onboardingType = $('#onboarding-name');
@@ -315,6 +328,18 @@
 				DiskUsageMetricCheckbox.val(1)
 			}
 		});
+
+
+		// BUTTONS
+		$('#button-allow-user-choose-location').on('click', function(event) {
+			event.preventDefault();
+
+			const url = new URL(window.location.href);
+			url.searchParams.append('custom', 'create-location-custom-field');
+
+			window.location.assign(url.toString());
+		});
+
 	});
 </script>
 
@@ -335,7 +360,7 @@
                     data-server_group="{$plan['server_group_name']}"
                     data-server_assign_rule="{$MGLANG['aa']['product']['assign_rule']['name'][{$plan['server_assign_rule']}]}"
                     data-server_assign_rule_description="{$MGLANG['aa']['product']['assign_rule']['description'][{$plan['server_assign_rule']}]}"
-                    data-account_config="{$plan['server_config']}"
+                    data-account_config='{$plan['server_config']}'
                     {if $plan['dns_server_type']}
                       data-dns_server="{$MGLANG['aa']['product']['dns_server'][{$plan['dns_server_type']}]} ({$plan['dns_server_name']})"
                       data-dns_server_name="{$plan['dns_server_type']}"
@@ -375,14 +400,14 @@
   <tr>
     <td class="fieldlabel" width="20%">Plan Settings</td>
     <td>
-      <span class="plan-settings">Instances limit: </span>
+      <span class="plan-settings">Instances limit:</span>
       <span id="instanceLimit">{$selectedPlan['instance_limit']}</span>
     </td>
   </tr>
   <tr>
     <td class="fieldlabel subtitle">Plan configuration from PanelAlpha</td>
     <td>
-      <span class="plan-settings">Onboarding: </span>
+      <span class="plan-settings">Onboarding:</span>
       <span id="onboarding-name">{$MGLANG['aa']['product']['onboarding']['name'][{$selectedPlan['config']['onboarding']['method']}]}</span>
       <span id="onboarding-description" style="margin-left: 4px;" data-toggle="tooltip" data-placement="right"
             title="{$MGLANG['aa']['product']['onboarding']['description'][{$selectedPlan['config']['onboarding']['method']}]}">
@@ -393,10 +418,13 @@
   </tr>
   <tr>
     <td></td>
-    <td>
-      <span class="plan-settings">Server Type: </span>
-      <img id="server-icon" style="padding-bottom: 2px; height: 22px;"
-           src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg">
+    <td class="plan-settings-cell-value">
+      <span class="plan-settings">Server Type:</span>
+      <img id="server-icon"
+           style="padding-bottom: 2px; height: 22px; max-width: 25px;"
+           class="server-icon"
+           src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
+      >
       <span id="server-type"> {$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}</span>
     </td>
   </tr>
@@ -404,10 +432,10 @@
   {if $selectedPlan['server_group_name']}
     <tr id="server">
       <td></td>
-      <td>
-        <span class="plan-settings">Server Group: </span>
+      <td class="plan-settings-cell-value">
+        <span class="plan-settings">Server Group:</span>
         <span id="server-group">{$selectedPlan['server_group_name']}</span>
-        <span> (Assign Rule:
+        <span style="margin-left: 4px;"> (Assign Rule:
                 <span id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)
             </span>
         <span id="assign-rule-description" style="margin-left: 4px;" data-toggle="tooltip"
@@ -421,8 +449,8 @@
   {else}
     <tr id="server">
       <td></td>
-      <td>
-        <span class="plan-settings">Server Group: </span>
+      <td class="plan-settings-cell-value">
+        <span class="plan-settings">Server Group:</span>
         <span id="server-group">All Servers</span>
         <span> (Assign Rule: <span
                   id="server-assign-rule">{$MGLANG['aa']['product']['assign_rule']['name'][{$selectedPlan['server_assign_rule']}]}</span>)</span>
@@ -439,13 +467,24 @@
   {foreach $selectedPlan['account_config'] as $key=>$value}
     <tr class="account-config">
       <td></td>
-      <td>
-          {if $key == 'whm_package'}
-            <span class="plan-settings" id="{$key}">WHM Package:</span>
-            <span id="{$value}">{$value|capitalize}</span>
+      <td class="plan-settings-cell-value">
+        <span class="plan-settings" id="{$key}">{$MGLANG['aa']['product']['server']['config']['key'][{$key}]}:</span>
+          {if $value === true}
+            <img id="{$value}" src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/checkIcon.svg"
+                 style="height: 14px;">
+          {elseif $value === false}
+            <img id="{$value}" src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/minusIcon.svg"
+                 style="height: 14px;">
+          {elseif !empty({$MGLANG['aa']['product']['server']['config']['value'][{$value}]})}
+            <span id="{$value}">{$MGLANG['aa']['product']['server']['config']['value'][{$value}]}</span>
           {else}
-            <span class="plan-settings" id="{$key}">{$key|replace: '_':' '|capitalize}:</span>
             <span id="{$value}">{$value|capitalize}</span>
+          {/if}
+          {if $key === 'allow_user_choose_location' && $value === true}
+            <button id="button-allow-user-choose-location"
+                    style="margin-left: 12px;"
+                    class="btn btn-xs"
+            >Show Location On Order Form</button>
           {/if}
       </td>
     </tr>
@@ -453,46 +492,60 @@
 
   <tr>
     <td></td>
-    <td>
+    <td class="plan-settings-cell-value">
       <span class="plan-settings">DNS Server:</span>
         {if $selectedPlan['dns_server_internal']}
           <img id="dns-server-icon"
                src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
-               style="padding-bottom: 2px; height: 22px;">
+               style="padding-bottom: 2px; height: 22px;"
+               class="server-icon"
+          >
           <span id="dns-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s DNS Server</span>
         {elseif $selectedPlan['dns_server_type']}
           <img id="dns-server-icon"
                src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['dns_server_type']}.svg"
-               style="padding-bottom: 2px; height: 22px;">
+               style="padding-bottom: 2px; height: 22px;"
+               class="server-icon"
+          >
           <span id="dns-server">{$MGLANG['aa']['product']['dns_server'][{$selectedPlan['dns_server_type']}]} ({$selectedPlan['dns_server_name']})</span>
         {else}
-          <img id="dns-server-icon" style="display: none; padding-bottom: 2px; height: 22px;">
-          <span id="dns-server">None</span>
+          <img id="dns-server-icon" style="display: none; padding-bottom: 2px; height: 22px;" class="server-icon">
+          <span id="dns-server" class="text-none">None</span>
         {/if}
     </td>
   </tr>
   <tr>
     <td></td>
-    <td><span class="plan-settings">Email Server:</span>
+    <td class="plan-settings-cell-value">
+      <span class="plan-settings">Email Server:</span>
         {if $selectedPlan['email_server_internal']}
           <img id="email-server-icon"
                src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['server_type']}.svg"
-               style="padding-bottom: 2px; height: 22px;">
+               style="padding-bottom: 2px; height: 22px;"
+               class="server-icon"
+          >
           <span id="email-server">{$MGLANG['aa']['product']['server'][{$selectedPlan['server_type']}]}'s Email Server</span>
         {elseif $selectedPlan['email_server_type']}
             {if $MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}] eq ''}
-              <img id="email-server-icon" alt="Email Server Icon"
-                   style="padding-bottom: 2px; height: 22px; display: none;" src="">
+              <img id="email-server-icon"
+                   alt="Email Server Icon"
+                   style="padding-bottom: 2px; height: 22px; display: none;"
+                   src=""
+                   class="server-icon"
+              >
               <span id="email-server">{$selectedPlan['email_server_type']} ({$selectedPlan['email_server_name']})</span>
             {else}
               <img id="email-server-icon"
                    src="{$config['SystemURL']}/modules/servers/panelalpha/templates/icons/{$selectedPlan['email_server_type']}.svg"
-                   style="padding-bottom: 2px; height: 22px;" alt="Email Server Icon">
+                   style="padding-bottom: 2px; height: 22px;"
+                   alt="Email Server Icon"
+                   class="server-icon"
+              >
               <span id="email-server">{$MGLANG['aa']['product']['email_server'][{$selectedPlan['email_server_type']}]} ({$selectedPlan['email_server_name']})</span>
             {/if}
         {else}
-          <img id="email-server-icon" style="display: none; padding-bottom: 2px; height: 22px;">
-          <span id="email-server">None</span>
+          <img id="email-server-icon" style="display: none; padding-bottom: 2px; height: 22px;" class="server-icon">
+          <span id="email-server" class="text-none ">None</span>
         {/if}
     </td>
   </tr>

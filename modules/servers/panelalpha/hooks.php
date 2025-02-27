@@ -11,7 +11,6 @@ use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\Module\Server\PanelAlpha\Models\Service;
 use WHMCS\Module\Server\PanelAlpha\Lang;
 use WHMCS\View\Menu\Item as MenuItem;
-use GuzzleHttp\Client;
 
 add_hook('AdminAreaFooterOutput', 1, function ($params) {
     if ($_REQUEST['action'] !== 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php' && isset($_REQUEST['id'])) {
@@ -128,33 +127,6 @@ add_hook('ServerEdit', 1, function ($params) {
     }
 });
 
-
-add_hook('ClientAreaProductDetails', 1, function ($params) {
-    if ($_REQUEST['sso'] === 'yes') {
-        $service = Service::findOrFail($_REQUEST['id']);
-        $server = $service->serverModel;
-        $userId = Helper::getCustomField($_REQUEST['id'], 'User ID');
-
-        $client = new Client();
-
-        $hostname = isset($server['port'])
-            ? $server['hostname'] . ':' . $server['port']
-            : $server['hostname'] . ':8443';
-
-        $promise = $client->postAsync($hostname . '/api/admin/users/' . $userId . '/sso-token', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $server['accesshash']
-            ],
-            'verify' => $server['secure'] === 'on'
-        ])->then(function ($response) {
-            return json_decode($response->getBody()->getContents())->data;
-        });
-        $data = $promise->wait();
-        header("Location: {$data->url}/sso-login?token={$data->token}");
-        exit();
-    }
-});
-
 add_hook('CustomFieldSave', 1, function ($params) {
     // check if service_id custom field belongs to panelalpha product
     $serviceCustomField = CustomField::with(['product'])
@@ -194,7 +166,7 @@ add_hook('CustomFieldSave', 1, function ($params) {
 
     // get service details from panelalpha
     $api = new PanelAlphaApi($service->serverModel->toArray());
-    $result = $api->getService($params['value']);
+    $panelalphaService = $api->getService($params['value']);
 
     $product = $service->product;
 
@@ -226,7 +198,7 @@ add_hook('CustomFieldSave', 1, function ($params) {
         CustomFieldValue::create([
             'fieldid' => $userCustomField->id,
             'relid' => $service->id,
-            'value' => $result['user_id'],
+            'value' => $panelalphaService['user_id'],
         ]);
     }
 
@@ -269,7 +241,7 @@ add_hook('CustomFieldSave', 1, function ($params) {
         ->find($service->userid);
 
     if ($client) {
-        [$firstName, $lastName] = explode(' ', $result['user_name']) + ['', ''];
+        [$firstName, $lastName] = explode(' ', $panelalphaService['user_name']) + ['', ''];
         $client->firstname = $firstName;
         $client->lastname = $lastName;
         $client->save();
@@ -288,8 +260,56 @@ add_hook('CustomFieldSave', 1, function ($params) {
 
 
     //change product name if it is plan_id
-    if ((int)$product->name === $result['plan']['id']) {
-        $product->name = $result['plan']['name'];
+    if ((int)$product->name === $panelalphaService['plan']['id']) {
+        $product->name = $panelalphaService['plan']['name'];
         $product->save();
     }
 });
+
+add_hook('AdminProductConfigFields', 1, function ($params) {
+    /** @var Product $product */
+    $product = Product::findOrFail($params['pid']);
+
+    if ($product->servertype === 'panelalpha' && $_REQUEST['custom'] === 'create-location-custom-field') {
+        $server = $product->getServer();
+
+        if (!$server) {
+            return;
+        }
+
+        $api = new PanelAlphaApi($server->toArray());
+        $plans = $api->getPlans();
+
+        $selectedPlan = $product->getPlanAssignedToProduct($plans);
+
+        if (empty($selectedPlan['server_id'])) {
+            throw new Exception('No server assigned to this plan');
+        }
+
+        $result = $api->getServerConfig($selectedPlan['server_id']);
+
+        if (empty($result['geo_affinity'])) {
+            return;
+        }
+
+        $options = [];
+        foreach ($result['geo_affinity'] as $option) {
+            $options[] = $option['value'] . '|' . str_replace(',', '', $option['text']);
+        }
+
+        if (CustomField::where('type', 'product')->where('relid', $product->id)->where('fieldname', 'location|Location')->first()) {
+            return;
+        }
+
+        CustomField::create([
+            'type' => 'product',
+            'relid' => $product->id,
+            'fieldname' => 'location|Location',
+            'fieldtype' => 'dropdown',
+            'fieldoptions' => implode(',', $options),
+            'required' => 'on',
+            'showorder' => 'on',
+        ]);
+    }
+});
+

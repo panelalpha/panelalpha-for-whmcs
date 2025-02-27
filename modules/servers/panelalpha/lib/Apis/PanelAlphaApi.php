@@ -5,10 +5,14 @@ namespace WHMCS\Module\Server\PanelAlpha\Apis;
 use Exception;
 use WHMCS\Module\Server\PanelAlpha\Apis\PanelAlphaApi\Request;
 use stdClass;
-use WHMCS\Module\Server\PanelAlpha\Helper;
 
 class PanelAlphaApi
 {
+    public static function fromModel($server): PanelAlphaApi
+    {
+        return new self($server->toArray());
+    }
+
     protected $request;
 
     public function __construct(array $params)
@@ -96,10 +100,11 @@ class PanelAlphaApi
      * @param string $theme
      * @param int $serviceId
      * @param int $userId
+     * @param string|null $location
      * @return array|null
      * @throws Exception
      */
-    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId): ?array
+    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId, ?string $location = null): ?array
     {
         $endpoint = 'instances';
         $method = 'POST';
@@ -110,6 +115,11 @@ class PanelAlphaApi
             'user_id' => $userId,
             'service_id' => $serviceId,
         ];
+
+        if (!empty($location)) {
+            $data['user_configurable_options']['geo_affinity'] = $location;
+        }
+
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
     }
@@ -324,5 +334,28 @@ class PanelAlphaApi
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
     }
-}
 
+    public function getServerConfig(int $id): array
+    {
+        $endpoint = 'servers/' . $id . '/config';
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    public function getLoginAsUserSsoToken(int $userId): array
+    {
+        $endpoint = 'users/' . $userId . '/login-as-user-sso-token';
+        $method = 'POST';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    public function getSsoToken(int $userId): array
+    {
+        $endpoint = 'users/' . $userId . '/sso-token';
+        $method = 'POST';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+}

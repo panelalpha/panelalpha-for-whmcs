@@ -17,7 +17,9 @@ class CustomField extends Model
         'fieldname',
         'fieldtype',
         'showorder',
-        'adminonly'
+        'adminonly',
+        'fieldoptions',
+        'required',
     ];
 
     public function product()
