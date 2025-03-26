@@ -31,7 +31,11 @@ class PanelAlphaApi
         try {
             $this->request->setAction(__FUNCTION__);
             $this->request->curl->setTimeout(5);
-            $this->request->call($method, $endpoint);
+            $result = $this->request->call($method, $endpoint);
+
+            if (!is_array($result) && empty($result['data'])) {
+                throw new Exception('Test Connection Failed');
+            }
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
@@ -44,6 +48,19 @@ class PanelAlphaApi
     public function getPlans(): array
     {
         $endpoint = 'plans?per_page=100';
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    /**
+     * @param int $id
+     * @return array
+     * @throws Exception
+     */
+    public function getPlan(int $id): array
+    {
+        $endpoint = 'plans/' . $id;
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
@@ -316,7 +333,7 @@ class PanelAlphaApi
      */
     public function getServices(): array
     {
-        $endpoint = 'services';
+        $endpoint = 'services?per_page=100';
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
@@ -330,6 +347,23 @@ class PanelAlphaApi
     public function getService(int $id): array
     {
         $endpoint = 'services/' . $id;
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    /**
+     * @param int|null $serverGroupId
+     * @return array
+     * @throws Exception
+     */
+    public function getServers(?int $serverGroupId = null): array
+    {
+        $endpoint = 'servers?per_page=100';
+        if ($serverGroupId !== null) {
+            $endpoint .= '&group_id=' . $serverGroupId;
+        }
+
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);

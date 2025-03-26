@@ -272,28 +272,38 @@ add_hook('AdminProductConfigFields', 1, function ($params) {
 
     if ($product->servertype === 'panelalpha' && $_REQUEST['custom'] === 'create-location-custom-field') {
         $server = $product->getServer();
+        $api = PanelAlphaApi::fromModel($server);
 
-        if (!$server) {
-            return;
+        if (empty($_REQUEST['plan_id'])) {
+            $plans = $api->getPlans();
+            $selectedPlan = $product->getPlanAssignedToProduct($plans);
+        } else {
+            $selectedPlan = $api->getPlan($_REQUEST['plan_id']);
         }
 
-        $api = new PanelAlphaApi($server->toArray());
-        $plans = $api->getPlans();
-
-        $selectedPlan = $product->getPlanAssignedToProduct($plans);
-
-        if (empty($selectedPlan['server_id'])) {
-            throw new Exception('No server assigned to this plan');
+        if (!$selectedPlan) {
+            throw new Exception('No plan assigned to this service.');
         }
 
-        $result = $api->getServerConfig($selectedPlan['server_id']);
+        if ($selectedPlan['server_assign_rule'] === 'specific server') {
+            $serverId = $selectedPlan['server_id'];
+        } else {
+            $servers = $api->getServers($selectedPlan['server_group_id']);
 
-        if (empty($result['geo_affinity'])) {
+            if (empty($servers)) {
+                throw new Exception('No servers assigned to plan.');
+            }
+            $serverId = $servers[0]['id'];
+        }
+
+        $serverConfig = $api->getServerConfig($serverId);
+
+        if (empty($serverConfig['geo_affinity'])) {
             return;
         }
 
         $options = [];
-        foreach ($result['geo_affinity'] as $option) {
+        foreach ($serverConfig['geo_affinity'] as $option) {
             $options[] = $option['value'] . '|' . str_replace(',', '', $option['text']);
         }
 

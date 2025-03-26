@@ -2,6 +2,7 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -197,11 +198,17 @@ class Product extends Model
     }
 
     /**
-     * @return Server|null
+     * @return Server
+     * @throws Exception
      */
-    public function getServer(): ?Server
+    public function getServer(): Server
     {
-        return $this->serverGroup->servers->first();
+        $server = $this->serverGroup->servers->first();
+
+        if (!$server) {
+            throw new Exception('No server assigned to this product.');
+        }
+        return $server;
     }
 
     public function saveConfigOption(string $key, string $value): void

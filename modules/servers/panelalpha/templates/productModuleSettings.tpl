@@ -328,19 +328,20 @@
 				DiskUsageMetricCheckbox.val(1)
 			}
 		});
-
-
-		// BUTTONS
-		$('#button-allow-user-choose-location').on('click', function(event) {
-			event.preventDefault();
-
-			const url = new URL(window.location.href);
-			url.searchParams.append('custom', 'create-location-custom-field');
-
-			window.location.assign(url.toString());
-		});
-
 	});
+
+	$(document).on('click', '#button-allow-user-choose-location', function(event) {
+		event.preventDefault();
+
+		let selectedPlanId = $('[name="configoption[1]"').val();
+
+		const url = new URL(window.location.href);
+		url.searchParams.append('custom', 'create-location-custom-field');
+		url.searchParams.append('plan_id', selectedPlanId);
+
+		window.location.assign(url.toString());
+	});
+
 </script>
 
 <table class="form module-settings" width="100%" border="0" cellspacing="2" cellpadding="3" id="tblModuleSettings">
