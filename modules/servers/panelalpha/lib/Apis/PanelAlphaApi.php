@@ -79,6 +79,13 @@ class PanelAlphaApi
         return $this->request->call($method, $endpoint);
     }
 
+    public function getUserById(int $id): ?array
+    {
+        $endpoint = 'users/' . $id;
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
 
     /**
      * @param array $user
@@ -107,6 +114,14 @@ class PanelAlphaApi
     {
         $endpoint = 'users';
         $method = 'POST';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint, $data);
+    }
+
+    public function updateUser(int $id, array $data): ?array
+    {
+        $endpoint = 'users/' . $id;
+        $method = 'PUT';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
     }
@@ -141,6 +156,21 @@ class PanelAlphaApi
         return $this->request->call($method, $endpoint, $data);
     }
 
+    public function getService(int $serviceId): array
+    {
+        $endpoint = 'services/' . $serviceId;
+        $method = 'GET';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
+
+    public function unsetServiceAsTrial(int $serviceId): array
+    {
+        $endpoint = 'services/' . $serviceId . '/unset-as-trial';
+        $method = 'PUT';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->call($method, $endpoint);
+    }
 
     /**
      * @param int $serviceId
@@ -334,19 +364,6 @@ class PanelAlphaApi
     public function getServices(): array
     {
         $endpoint = 'services?per_page=100';
-        $method = 'GET';
-        $this->request->setAction(__FUNCTION__);
-        return $this->request->call($method, $endpoint);
-    }
-
-    /**
-     * @param int $id
-     * @return array
-     * @throws Exception
-     */
-    public function getService(int $id): array
-    {
-        $endpoint = 'services/' . $id;
         $method = 'GET';
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);

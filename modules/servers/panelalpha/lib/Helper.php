@@ -3,7 +3,6 @@
 namespace WHMCS\Module\Server\PanelAlpha;
 
 use Exception;
-use WHMCS\Database\Capsule;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomFieldValue;
 use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;

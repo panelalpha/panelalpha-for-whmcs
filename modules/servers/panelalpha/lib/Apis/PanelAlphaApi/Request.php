@@ -189,7 +189,7 @@ class Request
     protected function parseResponse(string $response): ?array
     {
         $result = json_decode($response, true);
-        return $result['data'];
+        return $result['data'] ?? null;
     }
 
 }

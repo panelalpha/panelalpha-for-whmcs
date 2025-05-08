@@ -1,13 +1,14 @@
 {
     "schema": "1.0",
-    "type": "whmcs-provisioning",
-    "name": "PanelAlpha",
-    "version": "1.2.0",
+    "type": "whmcs-addons",
+    "name": "panelalpha",
     "license": "",
-    "category": "provisioning",
+    "category": "addon",
     "description": {
         "name": "PanelAlpha",
-        "tagline": "Module allow for the provisioning and management of PanelAlpha in WHMCS."
+        "tagline": "",
+        "long": "",
+        "features": []
     },
     "logo": {
         "filename": "logo.png"

@@ -124,7 +124,6 @@ function panelalpha_ConfigOptions($params): ?array
         }
         echo json_encode($data);
         die();
-
     }
 
     if ($_REQUEST['action'] === 'save' && basename($_SERVER["SCRIPT_NAME"]) === 'configproducts.php') {
@@ -138,7 +137,6 @@ function panelalpha_ConfigOptions($params): ?array
         foreach ($_POST['configoption'] as $key => $value) {
             $product->saveConfigOption($key, $value);
         }
-
         return [];
     }
 
@@ -225,6 +223,40 @@ function panelalpha_CreateAccount(array $params): string
         $server = Server::findOrFail($params['serverid'])->toArray();
         $connection = new PanelAlphaApi($server);
 
+        /**
+         * Upgrade from trial
+         */
+        $service = [];
+        $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
+        if ($panelAlphaServiceId) {
+            $service = $connection->getService($panelAlphaServiceId);
+        }
+        if (!empty($service['is_trial'])) {
+            Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $service['user_id']);
+            if ($service['status'] == 'suspended') {
+                $connection->unsuspendAccount($service['user_id'], $panelAlphaServiceId);
+            }
+            $connection->changePlan($service['user_id'], $panelAlphaServiceId, $params['configoption1']);
+            $user = $connection->getUserById((int)$service['user_id']);
+            if ($user) {
+                $data = [];
+                if (empty($user['first_name'])) {
+                    $data['first_name'] = $params['clientsdetails']['firstname'];
+                }
+                if (empty($user['last_name'])) {
+                    $data['last_name'] = $params['clientsdetails']['lastname'];
+                }
+                if (empty($user['company_name'])) {
+                    $data['company_name'] = $params['clientsdetails']['companyname'] ?? "";
+                }
+                if (!empty($data)) {
+                    $data['email'] = $user['email'];
+                    $connection->updateUser((int)$service['user_id'], $data);
+                }
+            }
+            return 'success';
+        }
+
         if ($params['addonId']) {
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
             if (!$panelAlphaServiceId) {
@@ -284,7 +316,14 @@ function panelalpha_CreateAccount(array $params): string
         if ($automaticInstanceInstalling == 'on') {
             $instanceName = Helper::getInstanceName($params);
             $theme = $params['configoption3'] ?? "";
-            $location = Helper::getCustomField($params['serviceid'], 'location|Location');
+
+            $location = null;
+            if (!empty($params['configoptions']['location'])) {
+                $location = $params['configoptions']['location'];
+            } elseif (!empty($params['customfields']['location'])) {
+                $location = $params['customfields']['location'];
+            }
+
             $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id'], $location);
         }
     } catch (Exception $e) {
@@ -485,7 +524,6 @@ function panelalpha_TestConnection(array $params): array
         $connection->testConnection();
 
         $success = true;
-
     } catch (Exception $e) {
         $success = false;
         $errorMsg = $e->getMessage();
