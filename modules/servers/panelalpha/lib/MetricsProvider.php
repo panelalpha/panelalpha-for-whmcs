@@ -10,6 +10,7 @@ use WHMCS\UsageBilling\Metrics\Metric;
 use WHMCS\UsageBilling\Metrics\Units\Accounts;
 use WHMCS\UsageBilling\Metrics\Units\WholeNumber;
 use WHMCS\UsageBilling\Metrics\Units\GigaBytes;
+use WHMCS\UsageBilling\Metrics\Units\MegaBytes;
 use WHMCS\UsageBilling\Metrics\Usage;
 
 class MetricsProvider implements ProviderInterface
@@ -28,19 +29,31 @@ class MetricsProvider implements ProviderInterface
                 'active_instances',
                 'Active Instances',
                 MetricInterface::TYPE_SNAPSHOT,
-                new WholeNumber('active-instances')
+                new WholeNumber('active-instances'),
             ),
             new Metric(
                 'remote_backups_size',
                 'Remote Backups Size',
                 MetricInterface::TYPE_SNAPSHOT,
-                new GigaBytes('remote_backups_size')
+                new GigaBytes('remote_backups_size'),
             ),
             new Metric(
                 'disk_usage',
                 'Disk Usage Size',
                 MetricInterface::TYPE_SNAPSHOT,
-                new GigaBytes('disk_usage')
+                new GigaBytes('disk_usage'),
+            ),
+            new Metric(
+                'visitors',
+                'Visitors',
+                MetricInterface::TYPE_PERIOD_MONTH,
+                new WholeNumber('visitors'),
+            ),
+            new Metric(
+                'bandwidth',
+                'Bandwidth',
+                MetricInterface::TYPE_PERIOD_MONTH,
+                new MegaBytes('bandwidth'),
             ),
         ];
     }
@@ -60,7 +73,9 @@ class MetricsProvider implements ProviderInterface
             $data = [
                 'active_instances' => $stats['active_instances'],
                 'remote_backups_size' => $stats['remote_backups_size'],
-                'disk_usage' => $stats['disk_usage']
+                'disk_usage' => $stats['disk_usage'],
+                'visitors' => $stats['visitors'],
+                'bandwidth' => $stats['bandwidth'],
             ];
             $usage[$serviceId] = $this->wrapUserData($data);
         }
@@ -85,7 +100,9 @@ class MetricsProvider implements ProviderInterface
         $data = [
             'active_instances' => $data['active_instances'],
             'remote_backups_size' => $data['remote_backups_size'],
-            'disk_usage' => $data['disk_usage']
+            'disk_usage' => $data['disk_usage'],
+            'visitors' => $data['visitors'],
+            'bandwidth' => $data['bandwidth'],
         ];
 
         return $this->wrapUserData($data);

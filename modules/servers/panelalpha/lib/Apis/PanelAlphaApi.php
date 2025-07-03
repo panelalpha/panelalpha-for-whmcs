@@ -90,16 +90,18 @@ class PanelAlphaApi
     /**
      * @param array $user
      * @param int $planId
+     * @param int|null $instanceLimit
      * @return stdClass|null
      * @throws Exception
      */
-    public function createService(array $user, int $planId): ?array
+    public function createService(array $user, int $planId, ?int $instanceLimit): ?array
     {
         $endpoint = 'users/' . $user['id'] . '/services';
         $method = 'POST';
         $data = [
             'plan_id' => $planId,
-            'status' => 'active'
+            'status' => 'active',
+            'instance_limit' => $instanceLimit,
         ];
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
@@ -265,12 +267,13 @@ class PanelAlphaApi
      * @return void
      * @throws Exception
      */
-    public function changePlan(int $userId, int $serviceId, int $planId): void
+    public function changePlan(int $userId, int $serviceId, int $planId, ?int $instanceLimit): void
     {
         $endpoint = 'users/' . $userId . '/services/' . $serviceId . '/change-plan';
         $method = 'PUT';
         $data = [
             'plan_id' => $planId,
+            'instance_limit' => $instanceLimit,
         ];
         $this->request->setAction(__FUNCTION__);
         $this->request->call($method, $endpoint, $data);

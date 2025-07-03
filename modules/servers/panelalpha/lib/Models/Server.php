@@ -63,4 +63,19 @@ class Server extends Model
         $this->username = "";
         $this->save();
     }
+
+    /**
+     * @param string $hostname
+     * @return Server|null
+     */
+    public static function getServerByHostname(string $hostname): ?Server
+    {
+        $servers = self::get();
+        foreach ($servers as $server) {
+            if (str_contains($server->hostname, $hostname)) {
+                return $server;
+            }
+        }
+        return null;
+    }
 }

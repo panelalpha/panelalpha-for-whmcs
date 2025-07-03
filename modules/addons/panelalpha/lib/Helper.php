@@ -309,7 +309,7 @@ class Helper
         $pdf = \pdfInvoice($invoiceId);
 
         @ob_clean();
-        header('Content-Disposition: attachment; filename="Invoice-' . $invoiceNumber . '"');
+        header('Content-Disposition: attachment; filename="Invoice-' . $invoiceNumber . '.pdf"');
         header('Content-Type: application/pdf');
         header('Content-Length: ' . strlen($pdf));
         header('Connection: close');

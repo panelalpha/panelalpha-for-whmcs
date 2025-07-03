@@ -3,6 +3,7 @@
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -15,10 +16,14 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $showdomainoptions
  * @property string $configoption7
  * @property string $configoption8
+ * @property string $configoption9
+ * @property string $configoption10
  * @property int $id
  * @property string $servertype
  * @property ServerGroup $serverGroup
- * @method static findOrFail(mixed $id)
+ * @property Collection $configurableOptionGroups
+ * @method static Product findOrFail(mixed $id)
+ * @method static Product|null find(int $id)
  * @method save()
  */
 class Product extends Model
@@ -143,6 +148,16 @@ class Product extends Model
         return $this->hasMany(CustomField::class, 'relid')->where('type', 'product');
     }
 
+    public function configurableOptionGroups()
+    {
+        return $this->belongsToMany(
+            ConfigurableOptionGroup::class,
+            'tblproductconfiglinks',
+            'pid',
+            'gid'
+        );
+    }
+
     /**
      * @return void
      */
@@ -256,5 +271,29 @@ class Product extends Model
         UsageItem::where('metric', $metric)
             ->where('rel_id', $this->id)
             ->update(['is_hidden' => $status]);
+    }
+
+    public function getConfigurableOptions(): \Illuminate\Support\Collection
+    {
+        return $this->configurableOptionGroups->flatMap(function ($group) {
+            return $group->configurableOptions;
+        });
+    }
+
+    public function getConfigurableOptionByName(string $key): ?ConfigurableOption
+    {
+        foreach ($this->configurableOptionGroups as $configurableOptionGroup) {
+            foreach ($configurableOptionGroup->configurableOptions as $configurableOption) {
+                if (str_contains($configurableOption->optionname, $key)) {
+                    return $configurableOption;
+                }
+            }
+        }
+        return null;
+    }
+
+    public function hasAutomaticallySetNumberOfSitesOnUpgradeFromTrialOption(): bool
+    {
+        return $this->configoption10 === 'on';
     }
 }

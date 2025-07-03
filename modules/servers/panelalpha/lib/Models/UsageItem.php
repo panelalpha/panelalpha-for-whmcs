@@ -26,7 +26,9 @@ class UsageItem extends Model
     protected static $usageItems = [
         'active_instances',
         'remote_backups_size',
-        'disk_usage'
+        'disk_usage',
+        'visitors',
+        'bandwidth',
     ];
 
     public static function getUsageItems(int $productId)

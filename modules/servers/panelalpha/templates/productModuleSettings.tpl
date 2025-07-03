@@ -255,10 +255,29 @@
 			},
 		});
 
+		//Automatically set number of sites
+		let automaticallySetNUmberOfSitesCheckbox = $('[name="configoption[10]"]');
+		$('#number-of-sites').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: automaticallySetNUmberOfSitesCheckbox.val(),
+			onInit: () => {
+				this.value = automaticallySetNUmberOfSitesCheckbox.val();
+			},
+		})
+		$('#number-of-sites').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				automaticallySetNUmberOfSitesCheckbox.val('on');
+			} else {
+				automaticallySetNUmberOfSitesCheckbox.val('');
+			}
+		});
 
 		/**
 		 * Usage metric
 		 */
+
+		// INSTANCES USAGE
 		let activeInstancesMetricCheckbox = $('[name="metric[active_instances]"');
 		let activeStatus;
 		if (activeInstancesMetricCheckbox.val() == 1) {
@@ -282,7 +301,7 @@
 			}
 		});
 
-
+    // REMOTE BACKUPS USAGE
 		let remoteBackupsSizeMetricCheckbox = $('[name="metric[remote_backups_size]"');
 		let activeRemoteBackupsSizeStatus;
 		if (remoteBackupsSizeMetricCheckbox.val() == 1) {
@@ -306,6 +325,7 @@
 			}
 		});
 
+		// DISK USAGE
 		let DiskUsageMetricCheckbox = $('[name="metric[disk_usage]"');
 		let diskUsageStatus;
 		if (DiskUsageMetricCheckbox.val() == 1) {
@@ -328,8 +348,57 @@
 				DiskUsageMetricCheckbox.val(1)
 			}
 		});
+
+		// VISITORS
+		let visitorsMetricCheckbox = $('[name="metric[visitors]"');
+		let visitorsStatus;
+		if (visitorsMetricCheckbox.val() == 1) {
+			visitorsStatus = ''
+		} else {
+			visitorsStatus = 'on'
+		}
+		$('#metric_visitors').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: visitorsStatus,
+			onInit: () => {
+				this.value = visitorsStatus
+			},
+		})
+		$('#metric_visitors').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				visitorsMetricCheckbox.val(0)
+			} else {
+				visitorsMetricCheckbox.val(1)
+			}
+		});
+
+		// BANDWIDTH
+		let bandwidthMetricCheckbox = $('[name="metric[bandwidth]"');
+		let bandwidthStatus;
+		if (bandwidthMetricCheckbox.val() == 1) {
+			bandwidthStatus = ''
+		} else {
+			bandwidthStatus = 'on'
+		}
+		$('#metric_bandwidth').bootstrapSwitch({
+			size: 'small',
+			onColor: 'success',
+			state: bandwidthStatus,
+			onInit: () => {
+				this.value = bandwidthStatus
+			},
+		})
+		$('#metric_bandwidth').on('switchChange.bootstrapSwitch', function (event, state) {
+			if (state) {
+				bandwidthMetricCheckbox.val(0)
+			} else {
+				bandwidthMetricCheckbox.val(1)
+			}
+		});
 	});
 
+	// Custom Fields
 	$(document).on('click', '#button-allow-user-choose-location', function(event) {
 		event.preventDefault();
 
@@ -606,6 +675,15 @@
     <td class="fieldarea">
       <input id="sso" type="checkbox" name="sso" class="switch">
       <input type="hidden" name="configoption[5]" value="{$product->configoption5}">
+    </td>
+  </tr>
+  <tr>
+    <td class="fieldlabel" width="20%">Automatically set number of sites<br>
+      <span class="subtitle">Automatically sets the number of sites when upgrading from trial to a product with 'sites' Configurable Option</span>
+    </td>
+    <td class="fieldarea">
+      <input id="number-of-sites" type="checkbox" name="number-of-sites" class="switch">
+      <input type="hidden" name="configoption[10]" value="{$product->configoption10}">
     </td>
   </tr>
   </tbody>

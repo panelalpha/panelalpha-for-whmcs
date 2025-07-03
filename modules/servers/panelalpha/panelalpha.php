@@ -236,7 +236,8 @@ function panelalpha_CreateAccount(array $params): string
             if ($service['status'] == 'suspended') {
                 $connection->unsuspendAccount($service['user_id'], $panelAlphaServiceId);
             }
-            $connection->changePlan($service['user_id'], $panelAlphaServiceId, $params['configoption1']);
+            $instanceLimit = $params['configoptions']['sites'] ?? null;
+            $connection->changePlan($service['user_id'], $panelAlphaServiceId, $params['configoption1'], $instanceLimit);
             $user = $connection->getUserById((int)$service['user_id']);
             if ($user) {
                 $data = [];
@@ -296,7 +297,8 @@ function panelalpha_CreateAccount(array $params): string
         }
 
         $planId = $params['configoption1'];
-        $service = $connection->createService($user, $planId);
+        $instanceLimit = $params['configoptions']['sites'] ?? null;
+        $service = $connection->createService($user, $planId, $instanceLimit);
         if (!$service) {
             throw new Exception('No service from PanelAlpha');
         }
@@ -308,7 +310,6 @@ function panelalpha_CreateAccount(array $params): string
         Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', $user['id']);
 
         $serviceModel = Service::find($params['serviceid']);
-        $serviceModel->domain = "";
         $serviceModel->username = "";
         $serviceModel->save();
 
@@ -324,7 +325,9 @@ function panelalpha_CreateAccount(array $params): string
                 $location = $params['customfields']['location'];
             }
 
-            $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id'], $location);
+            $instanceDetails = $connection->createInstance($params, $instanceName, $theme, $service['id'], $user['id'], $location);
+            $serviceModel->domain = $instanceDetails['domain'];
+            $serviceModel->save();
         }
     } catch (Exception $e) {
         return $e->getMessage();
