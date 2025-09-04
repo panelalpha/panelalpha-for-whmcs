@@ -4,6 +4,15 @@ namespace WHMCS\Module\Server\PanelAlpha\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @method static Service findOrFail(int $id)
+ * @method bool save()
+ *
+ * @property string $username
+ * @property string $domain
+ * @property Product $product
+ * @property Server $serverModel
+ */
 class Service extends Model
 {
     protected $table = 'tblhosting';

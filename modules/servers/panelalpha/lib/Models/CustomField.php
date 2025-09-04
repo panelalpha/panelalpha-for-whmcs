@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static join(string $table, string $column, string $operator, string $column)
+ * @method static CustomField create(array $array)
  */
 class CustomField extends Model
 {

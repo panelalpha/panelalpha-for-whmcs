@@ -1,0 +1,84 @@
+.server-icon {
+    max-width: 24px;
+    height: 22px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+}
+
+.server-icon[data-server="cpanel"] {
+    background-image: url('../icons/cpanel.svg');
+}
+
+.server-icon[data-server="plesk"] {
+    background-image: url('../icons/plesk.svg');
+}
+
+.server-icon[data-server="directadmin"] {
+    background-image: url('../icons/directadmin.svg');
+}
+
+.server-icon[data-server="checkIcon"] {
+    background-image: url('../icons/checkIcon.svg');
+}
+
+.server-icon[data-server="cloudflare"] {
+    background-image: url('../icons/cloudflare.svg');
+}
+
+.server-icon[data-server="cpanel-dns-only"] {
+    background-image: url('../icons/cpanel-dns-only.svg');
+}
+
+.server-icon[data-server="cpanel-email-server"] {
+    background-image: url('../icons/cpanel-email-server.svg');
+}
+
+.server-icon[data-server="informationIcon"] {
+    background-image: url('../icons/informationIcon.svg');
+}
+
+.server-icon[data-server="mailcow"] {
+    background-image: url('../icons/mailcow.svg');
+}
+
+.server-icon[data-server="minusIcon"] {
+    background-image: url('../icons/minusIcon.svg');
+}
+
+.server-icon[data-server="panelalpha"] {
+    background-image: url('../icons/panelalpha.svg');
+}
+
+.server-icon[data-server="power-dns"] {
+    background-image: url('../icons/power-dns.svg');
+}
+
+.server-icon[data-server="wp-cloud"] {
+    background-image: url('../icons/wp-cloud.svg');
+}
+
+.server-icon[data-server="zimbra"] {
+    background-image: url('../icons/zimbra.svg');
+}
+
+.icon {
+    max-width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.icon[data-icon="checkIcon"] {
+    background-image: url('../icons/checkbox-checked-icon.svg');
+}
+
+.icon[data-icon="uncheckIcon"] {
+    background-image: url('../icons/checkbox-unchecked-icon.svg');
+}
+
+

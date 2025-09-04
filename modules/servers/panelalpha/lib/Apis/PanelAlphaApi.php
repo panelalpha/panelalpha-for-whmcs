@@ -88,20 +88,30 @@ class PanelAlphaApi
     }
 
     /**
-     * @param array $user
+     * @param int $userId
      * @param int $planId
      * @param int|null $instanceLimit
+     * @param int|null $serverLocation
+     * @param array|null $hostingAccountConfig
      * @return stdClass|null
      * @throws Exception
      */
-    public function createService(array $user, int $planId, ?int $instanceLimit): ?array
+    public function createService(
+        int    $userId,
+        int    $planId,
+        ?int   $instanceLimit,
+        ?int   $serverLocation,
+        ?array $hostingAccountConfig,
+    ): ?array
     {
-        $endpoint = 'users/' . $user['id'] . '/services';
+        $endpoint = 'users/' . $userId . '/services';
         $method = 'POST';
         $data = [
             'plan_id' => $planId,
             'status' => 'active',
             'instance_limit' => $instanceLimit,
+            'server_location' => $serverLocation,
+            'hosting_account_config' => $hostingAccountConfig,
         ];
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
@@ -129,30 +139,25 @@ class PanelAlphaApi
     }
 
     /**
-     * @param array $params
+     * @param string $domain
      * @param string $instanceName
      * @param string $theme
      * @param int $serviceId
      * @param int $userId
-     * @param string|null $location
      * @return array|null
      * @throws Exception
      */
-    public function createInstance(array $params, string $instanceName, string $theme, int $serviceId, int $userId, ?string $location = null): ?array
+    public function createInstance(string $domain, string $instanceName, string $theme, int $serviceId, int $userId): ?array
     {
         $endpoint = 'instances';
         $method = 'POST';
         $data = [
             'name' => $instanceName,
-            'domain' => $params['domain'],
+            'domain' => $domain,
             'theme' => $theme,
             'user_id' => $userId,
             'service_id' => $serviceId,
         ];
-
-        if (!empty($location)) {
-            $data['user_configurable_options']['geo_affinity'] = $location;
-        }
 
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint, $data);
@@ -264,16 +269,25 @@ class PanelAlphaApi
      * @param int $userId
      * @param int $serviceId
      * @param int $planId
+     * @param int|null $instanceLimit
+     * @param array|null $hostingAccountConfig
      * @return void
      * @throws Exception
      */
-    public function changePlan(int $userId, int $serviceId, int $planId, ?int $instanceLimit): void
+    public function changePlan(
+        int    $userId,
+        int    $serviceId,
+        int    $planId,
+        ?int   $instanceLimit,
+        ?array $hostingAccountConfig
+    ): void
     {
         $endpoint = 'users/' . $userId . '/services/' . $serviceId . '/change-plan';
         $method = 'PUT';
         $data = [
             'plan_id' => $planId,
             'instance_limit' => $instanceLimit,
+            'hosting_account_config' => $hostingAccountConfig,
         ];
         $this->request->setAction(__FUNCTION__);
         $this->request->call($method, $endpoint, $data);

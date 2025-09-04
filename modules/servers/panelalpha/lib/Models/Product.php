@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @property string $name
  * @property string $configoption1
  * @property string $configoption2
  * @property string $configoption3
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $configoption8
  * @property string $configoption9
  * @property string $configoption10
+ * @property string $configoption11
+ * @property string $configoption12
  * @property int $id
  * @property string $servertype
  * @property ServerGroup $serverGroup
@@ -66,18 +69,18 @@ class Product extends Model
         'autosetup',
         'servertype',
         'servergroup',
-        'configoption1',
-        'configoption2',
-        'configoption3',
-        'configoption4',
-        'configoption5',
-        'configoption6',
-        'configoption7',
-        'configoption8',
-        'configoption9',
-        'configoption10',
-        'configoption11',
-        'configoption12',
+        'configoption1',    // panelalpha plan id
+        'configoption2',    // automatic install instance enabled
+        'configoption3',    // default instance name
+        'configoption4',    // manual termination
+        'configoption5',    // panelalpha sso in main menu
+        'configoption6',    // onboarding type
+        'configoption7',    // ask for domain on onboarding
+        'configoption8',    // show instance name on order form
+        'configoption9',    // default instance name
+        'configoption10',   // automatic set number of sites on upgrade from trial
+        'configoption11',   // advanced mode
+        'configoption12',   // custom hosting account config values
         'configoption13',
         'configoption14',
         'configoption15',
@@ -218,7 +221,7 @@ class Product extends Model
      */
     public function getServer(): Server
     {
-        $server = $this->serverGroup->servers->first();
+        $server = $this->serverGroup?->servers->first();
 
         if (!$server) {
             throw new Exception('No server assigned to this product.');
@@ -237,9 +240,9 @@ class Product extends Model
      */
     public function setShowDomainOption(): void
     {
-        $automaticInstallInstance = $this->configoption2 === 'on';
-        $onboardingType = $this->configoption6;
-        $onboardingAskForDomain = $this->configoption7;
+        $automaticInstallInstance = $this->isAutomaticInstallInstanceEnabled();
+        $onboardingType = $this->getOnboardingType();
+        $onboardingAskForDomain = $this->getOnboardingAskForDomain();;
 
         if ($automaticInstallInstance && $onboardingType === 'Standard') {
             $this->showdomainoptions = true;
@@ -292,8 +295,45 @@ class Product extends Model
         return null;
     }
 
+    public function getPanelAlphaPlanId(): int
+    {
+        return (int)$this->configoption1;
+    }
+
+    public function isAutomaticInstallInstanceEnabled(): bool
+    {
+        return $this->configoption2 === 'on';
+    }
+
+    public function getThemeName(): string
+    {
+        return $this->configoption3 ?? "";
+    }
+
+    public function getOnboardingType(): ?string
+    {
+        return $this->configoption6 ?? null;
+    }
+
+    public function getOnboardingAskForDomain(): bool
+    {
+        return $this->configoption7 === 'on';
+    }
+
     public function hasAutomaticallySetNumberOfSitesOnUpgradeFromTrialOption(): bool
     {
         return $this->configoption10 === 'on';
+    }
+
+    public function hasCustomAccountConfiguration(): bool
+    {
+        return (bool)$this->configoption11;
+    }
+
+    public function getCustomAccountConfiguration(): array
+    {
+        $decodedConfig = html_entity_decode($this->configoption12, ENT_QUOTES | ENT_HTML401, 'UTF-8');
+        parse_str($decodedConfig, $config);
+        return $config;
     }
 }
