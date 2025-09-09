@@ -495,27 +495,37 @@ function panelalpha_TerminateAccount(array $params): string
 function panelalpha_ChangePackage(array $params): string
 {
     try {
+        $LANG = Lang::getLang();
+
         if ($params['addonId']) {
-            throw new Exception('Change package for addons is not supported');
+            throw new Exception($LANG['messages.change_plan_for_addons_not_supported']);
         }
 
-        $upgradeProduct = \WHMCS\Product\Product::find($params['pid']);
+        $upgradedProduct = Product::findOrFail($params['pid']);
 
         $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
         if (!$panelAlphaServiceId) {
-            throw new Exception('No service id from PanelAlpha');
+            throw new Exception($LANG['messages.no_service_from_panelalpha']);
         }
 
         $panelAlphaUserId = Helper::getCustomField($params['serviceid'], 'User ID');
         if (!$panelAlphaUserId) {
-            throw new Exception('No user id from PanelAlpha');
+            throw new Exception($LANG['messages.no_user_from_panelalpha']);
         }
 
-        $newPlanId = $upgradeProduct->configoption1;
+        $server = Server::findOrFail($params['serverid']);
+        $api = PanelAlphaApi::fromModel($server);
 
-        $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaApi($server);
-        $connection->changePlan($panelAlphaUserId, $panelAlphaServiceId, $newPlanId);
+        $newPlanId = $upgradedProduct->getPanelAlphaPlanId();
+        $instanceLimit = Helper::getInstanceLimit($params);
+        $hostingAccountConfig = Helper::getHostingAccountConfig($params);
+        $api->changePlan(
+            $panelAlphaUserId,
+            $panelAlphaServiceId,
+            $newPlanId,
+            $instanceLimit,
+            $hostingAccountConfig
+        );
     } catch (Exception $e) {
         return $e->getMessage();
     }

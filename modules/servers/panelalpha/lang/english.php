@@ -129,4 +129,5 @@ $_LANG['general']['none'] = 'None';
 
 $_LANG['messages.no_user_from_panelalpha'] = 'User from PanelAlpha not found.';
 $_LANG['messages.no_service_from_panelalpha'] = 'Service from PanelAlpha not found.';
+$_LANG['messages.change_plan_for_addons_not_supported'] = 'Change package for addons is not supported.';
 
