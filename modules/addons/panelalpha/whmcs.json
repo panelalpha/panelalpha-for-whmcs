@@ -2,6 +2,7 @@
     "schema": "1.0",
     "type": "whmcs-addons",
     "name": "panelalpha",
+    "version": "1.5.0",
     "license": "",
     "category": "addon",
     "description": {
@@ -15,7 +16,7 @@
     },
     "support": {
         "homepage": "https:\/\/www.panelalpha.com\/",
-        "email": "presales@panelalpha.com", 
+        "email": "presales@panelalpha.com",
         "support_url": "https:\/\/manage.panelalpha.com\/contact",
         "docs_url": "https:\/\/www.panelalpha.com/documentation\/"
     },
