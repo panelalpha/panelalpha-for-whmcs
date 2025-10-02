@@ -170,17 +170,38 @@ class Helper
             $configurableOptions = [];
             $hostingAccountConfig = [];
 
-            foreach ($plan['account_config_fields'] as $config) {
-                $value = $plan['account_config'][$config['name']] ?? null;
+            if (!empty($plan['account_config_fields'])) {
+                foreach ($plan['account_config_fields'] as $config) {
+                    $value = $plan['account_config'][$config['name']] ?? null;
 
-                $hostingAccountConfig[] = [
-                    'name' => $config['name'],
-                    'type' => $config['type'],
-                    'value' => $value,
-                ];
+                    $hostingAccountConfig[] = [
+                        'name' => $config['name'],
+                        'type' => $config['type'],
+                        'value' => $value,
+                    ];
 
-                if (in_array('billable', $config['flags'] ?? [], true)) {
-                    $configurableOptions[] = $config['name'];
+                    if (in_array('billable', $config['flags'] ?? [], true)) {
+                        $configurableOptions[] = $config['name'];
+                    }
+                }
+            } else {
+                foreach ($plan['account_config'] as $key => $value) {
+                    $config = self::getConfig('configurable-options.' . $key);
+                    if ($config !== null) {
+                        $type = 'text';
+                        if ($config['type'] === 1) {
+                            $type = 'select';
+                        } else if ($config['type'] === 3) {
+                            $type = 'checkbox';
+                        }
+
+                        $hostingAccountConfig[] = [
+                            'name' => $key,
+                            'type' => $type,
+                            'value' => $value,
+                        ];
+                        $configurableOptions[] = $key;
+                    }
                 }
             }
 
@@ -188,9 +209,12 @@ class Helper
             $plan['hosting_account_config_json'] = json_encode($hostingAccountConfig, JSON_THROW_ON_ERROR);
 
             $availableConfigurableOptions = [
-                ... $configurableOptions,
-                ...self::$defaultConfigurableOptions,
+                ...$configurableOptions,
+                'sites',
             ];
+            if ($plan['server_assign_rule'] !== 'specific_server') {
+                $availableConfigurableOptions[] = 'server_location';
+            }
 
             $plan['configurable_options'] = $availableConfigurableOptions;
             $plan['configurable_options_json'] = json_encode($availableConfigurableOptions, JSON_THROW_ON_ERROR);

@@ -271,6 +271,9 @@ add_hook('AdminProductConfigFields', 1, function ($params) {
 
     if ($product->servertype === 'panelalpha' && $_REQUEST['custom'] === 'generate-configurable-options') {
         $server = $product->getServer();
+        if ($server === null) {
+            throw new Exception('No server assigned to this product.');
+        }
         $api = PanelAlphaApi::fromModel($server);
         $plans = $api->getPlans();
         $plans = Helper::getFormattedPlans($plans);
@@ -287,40 +290,60 @@ add_hook('AdminProductConfigFields', 1, function ($params) {
 
         $configurableOptionGroup->products()->sync([$product->id]);
 
-        foreach ($selectedPlan['configurable_options'] as $configurableOption) {
-            $field = Helper::getConfig('configurable-options.' . $configurableOption);
-            $optionName = $field['name'] ?? $configurableOption;
+        foreach ($selectedPlan['configurable_options'] as $configurableOptionName) {
+            $field = Helper::getConfig('configurable-options.' . $configurableOptionName);
+            $optionName = $field['name'] ?? $configurableOptionName;
             $optionType = $field['type'] ?? 1;
 
-            $configurableOption = $configurableOptionGroup->configurableOptions()
-                ->where('optionname', $optionName)
-                ->where('optiontype', $optionType)
-                ->first();
-
-            if ($configurableOption === null) {
-                $configurableOption = $configurableOptionGroup->configurableOptions()->create([
+            $configurableOption = $configurableOptionGroup->configurableOptions()->updateOrCreate(
+                [
                     'optionname' => $optionName,
                     'optiontype' => $optionType,
+                ],
+                [
                     'qtyminimum' => 0,
                     'qtymaximum' => 0,
                     'order' => 0,
-                ]);
+                ]
+            );
 
-                if (isset($field['options'])) {
-                    foreach ($field['options'] as $option) {
-                        $configurableOption->options()->create([
-                            'optionname' => $option,
+            if (
+                $configurableOptionName === 'server_location'
+                && ($selectedPlan['server_assign_rule'] === 'random' || $selectedPlan['server_assign_rule'] === 'least_accounts')
+            ) {
+                foreach ($selectedPlan['hosting_server_group']['servers'] as $server) {
+                    $configurableOption->options()->updateOrCreate(
+                        [
+                            'optionname' => $server['id'] . '|' . $server['name'],
+                        ],
+                        [
                             'sortorder' => 0,
                             'hidden' => 0,
-                        ]);
-                    }
+                        ]
+                    );
+                }
+            } else if (isset($field['options'])) {
+                foreach ($field['options'] as $option) {
+                    $configurableOption->options()->updateOrCreate(
+                        [
+                            'optionname' => $option,
+                        ],
+                        [
+                            'sortorder' => 0,
+                            'hidden' => 0,
+                        ]
+                    );
                 }
             }
         }
+
     }
 
     if ($product->servertype === 'panelalpha' && $_REQUEST['custom'] === 'create-location-custom-field') {
         $server = $product->getServer();
+        if ($server === null) {
+            throw new Exception('No server assigned to this product.');
+        }
         $api = PanelAlphaApi::fromModel($server);
 
         if (empty($_REQUEST['plan_id'])) {
@@ -369,6 +392,48 @@ add_hook('AdminProductConfigFields', 1, function ($params) {
             'required' => 'on',
             'showorder' => 'on',
         ]);
+    }
+});
+
+add_hook('AfterCronJob', 1, function ($params) {
+    try {
+        $services = Service::active()->panelalpha()->get();
+
+        $services->each(function (Service $service) {
+            if (
+                !empty($service->domain)
+                || $service->panelalphaServiceId === null
+            ) {
+                return;
+            }
+
+            $product = $service->product;
+            $server = $product->getServer();
+            if ($server === null) {
+                return;
+            }
+            $api = PanelAlphaApi::fromModel($server);
+
+            try {
+                $result = $api->getService($service->panelalphaServiceId);
+            } catch (Exception $e) {
+                return;
+            }
+
+            $domain = $result['domain'] ?? null;
+
+            if ($domain !== null) {
+                $service->domain = $domain;
+                $service->save();
+            }
+        });
+    } catch (Exception $exception) {
+        logModuleCall(
+            'panelalpha',
+            'AfterCronJob',
+            'Domain service synchronization exception.',
+            $exception->getMessage(),
+        );
     }
 });
 

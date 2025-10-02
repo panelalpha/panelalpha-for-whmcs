@@ -216,19 +216,18 @@ class Product extends Model
     }
 
     /**
-     * @return Server
-     * @throws Exception
+     * @return Server|null
      */
-    public function getServer(): Server
+    public function getServer(): ?Server
     {
-        $server = $this->serverGroup?->servers->first();
-
-        if (!$server) {
-            throw new Exception('No server assigned to this product.');
-        }
-        return $server;
+        return $this->serverGroup?->servers->first();
     }
 
+    /**
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
     public function saveConfigOption(string $key, string $value): void
     {
         $this->{'configoption' . $key} = $value;
@@ -242,7 +241,7 @@ class Product extends Model
     {
         $automaticInstallInstance = $this->isAutomaticInstallInstanceEnabled();
         $onboardingType = $this->getOnboardingType();
-        $onboardingAskForDomain = $this->getOnboardingAskForDomain();;
+        $onboardingAskForDomain = $this->getOnboardingAskForDomain();
 
         if ($automaticInstallInstance && $onboardingType === 'Standard') {
             $this->showdomainoptions = true;

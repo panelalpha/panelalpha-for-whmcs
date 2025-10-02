@@ -6,12 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static Service findOrFail(int $id)
+ * @method static Illuminate\Database\Eloquent\Collection all()
+ * @method static Illuminate\Database\Eloquent\Builder active()
+ * @method static Illuminate\Database\Eloquent\Builder panelalpha()
  * @method bool save()
  *
  * @property string $username
  * @property string $domain
  * @property Product $product
  * @property Server $serverModel
+ * @property int|null $panelalphaServiceId
  */
 class Service extends Model
 {
@@ -88,9 +92,9 @@ class Service extends Model
         return $this->belongsTo(Product::class, "packageid");
     }
 
-    public function customField()
+    public function customFieldValues()
     {
-        return $this->hasMany(CustomField::class, "packageid");
+        return $this->hasMany(CustomFieldValue::class, "relid");
     }
 
     public function serverModel()
@@ -101,5 +105,46 @@ class Service extends Model
     public function client()
     {
         return $this->belongsTo(Client::class, 'userid');
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getPanelalphaServiceIdAttribute(): ?int
+    {
+        return !empty($this->getCustomFieldValue('Service ID'))
+            ? (int) $this->getCustomFieldValue('Service ID')
+            : null;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('domainstatus', 'Active');
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePanelalpha($query)
+    {
+        return $query->whereHas('product', function ($query) {
+            $query->where('servertype', 'panelalpha');
+        });
+    }
+
+    /**
+     * @param string $fieldName
+     * @return string|null
+     */
+    public function getCustomFieldValue(string $fieldName): ?string
+    {
+        return $this->customFieldValues()->whereHas('customField', function ($query) use ($fieldName) {
+            $query->where('fieldname', $fieldName);
+        })->first()?->value;
     }
 }
