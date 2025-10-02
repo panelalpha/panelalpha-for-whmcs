@@ -1,0 +1,95 @@
+name: Check Release Version
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get release tag
+        id: get_tag
+        run: |
+          # Pobierz tag z referencji (refs/tags/v1.5.0 -> v1.5.0)
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          
+          # Usuń prefix 'v' jeśli istnieje (v1.5.0 -> 1.5.0)
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Release tag: $TAG"
+          echo "Version: $VERSION"
+      
+      - name: Check server module version
+        id: check_server
+        run: |
+          FILE="modules/servers/panelalpha/whmcs.json"
+          
+          if [ ! -f "$FILE" ]; then
+            echo "❌ File $FILE not found!"
+            exit 1
+          fi
+          
+          # Pobierz wersję z pliku JSON
+          FILE_VERSION=$(jq -r '.version' "$FILE")
+          
+          if [ -z "$FILE_VERSION" ] || [ "$FILE_VERSION" == "null" ]; then
+            echo "❌ Version field not found in $FILE"
+            exit 1
+          fi
+          
+          echo "File version: $FILE_VERSION"
+          echo "Expected version: ${{ steps.get_tag.outputs.version }}"
+          
+          if [ "$FILE_VERSION" != "${{ steps.get_tag.outputs.version }}" ]; then
+            echo "❌ Version mismatch in $FILE!"
+            echo "Expected: ${{ steps.get_tag.outputs.version }}"
+            echo "Found: $FILE_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version in $FILE matches the release tag"
+      
+      - name: Check addon module version
+        id: check_addon
+        run: |
+          FILE="modules/addons/panelalpha/whmcs.json"
+          
+          if [ ! -f "$FILE" ]; then
+            echo "❌ File $FILE not found!"
+            exit 1
+          fi
+          
+          # Pobierz wersję z pliku JSON
+          FILE_VERSION=$(jq -r '.version' "$FILE")
+          
+          # Sprawdź czy pole version istnieje
+          if [ -z "$FILE_VERSION" ] || [ "$FILE_VERSION" == "null" ]; then
+            echo "⚠️ Warning: Version field not found in $FILE (this may be expected for addon modules)"
+            exit 0
+          fi
+          
+          echo "File version: $FILE_VERSION"
+          echo "Expected version: ${{ steps.get_tag.outputs.version }}"
+          
+          if [ "$FILE_VERSION" != "${{ steps.get_tag.outputs.version }}" ]; then
+            echo "❌ Version mismatch in $FILE!"
+            echo "Expected: ${{ steps.get_tag.outputs.version }}"
+            echo "Found: $FILE_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version in $FILE matches the release tag"
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "🎉 All version checks passed!"
+          echo "Release tag: ${{ steps.get_tag.outputs.tag }}"
+          echo "Version: ${{ steps.get_tag.outputs.version }}"
