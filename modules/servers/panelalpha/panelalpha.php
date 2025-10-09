@@ -360,23 +360,25 @@ function panelalpha_CreateAccount(array $params): string
 function panelalpha_SuspendAccount(array $params): string
 {
     try {
+        $LANG = Lang::getLang();
+
         if ($params['addonId']) {
-            throw new Exception('Suspend action for addons is not supported.');
+            throw new Exception($LANG['messages.suspend_not_supported']);
         }
 
         $panelAlphaUserId = $params['customfields']['User ID'] ?? null;
         if (!$panelAlphaUserId) {
-            throw new Exception('No user id from PanelAlpha');
+            throw new Exception($LANG['messages.no_user_from_panelalpha']);
         }
 
         $panelAlphaServiceId = $params['customfields']['Service ID'] ?? null;
         if (!$panelAlphaServiceId) {
-            throw new Exception('No service id from PanelAlpha');
+            throw new Exception($LANG['messages.no_service_from_panelalpha']);
         }
 
-        $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaApi($server);
-        $connection->suspendAccount($panelAlphaUserId, $panelAlphaServiceId);
+        $server = Server::findOrFail($params['serverid']);
+        $api = PanelAlphaApi::fromModel($server);
+        $api->suspendAccount($panelAlphaUserId, $panelAlphaServiceId);
     } catch (Exception $e) {
         return $e->getMessage();
     }
@@ -389,28 +391,29 @@ function panelalpha_SuspendAccount(array $params): string
  *
  * @param array $params
  * @return string
- * @throws GuzzleException
  */
 function panelalpha_UnsuspendAccount(array $params): string
 {
     try {
+        $LANG = Lang::getLang();
+
         if ($params['addonId']) {
-            throw new Exception('Unsuspend for addons is not supported.');
+            throw new Exception($LANG['messages.unsuspend_not_supported']);
         }
 
         $panelAlphaUserId = $params['customfields']['User ID'] ?? null;
         if (!$panelAlphaUserId) {
-            throw new Exception('No user id from PanelAlpha');
+            throw new Exception($LANG['messages.no_user_from_panelalpha']);
         }
 
         $panelAlphaServiceId = $params['customfields']['Service ID'] ?? null;
         if (!$panelAlphaServiceId) {
-            throw new Exception('No service id from PanelAlpha');
+            throw new Exception($LANG['messages.no_service_from_panelalpha']);
         }
 
-        $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaApi($server);
-        $connection->unsuspendAccount($panelAlphaUserId, $panelAlphaServiceId);
+        $server = Server::findOrFail($params['serverid']);
+        $api = PanelAlphaApi::fromModel($server);
+        $api->unsuspendAccount($panelAlphaUserId, $panelAlphaServiceId);
     } catch (Exception $e) {
         return $e->getMessage();
     }
@@ -422,23 +425,33 @@ function panelalpha_UnsuspendAccount(array $params): string
 /**
  * Terminate service
  *
- * @param array $params
+ * @param array{
+ *     serverid: int,
+ *     addonId?: int,
+ *     configoption4: string,
+ *     userid: int,
+ *     serviceid: int,
+ *     pid: int,
+ *     domain: string,
+ *     customfields: array,
+ * } $params
  * @return string
  * @throws GuzzleException
  */
 function panelalpha_TerminateAccount(array $params): string
 {
     try {
-        $server = Server::findOrFail($params['serverid'])->toArray();
-        $connection = new PanelAlphaApi($server);
+        $LANG = Lang::getLang();
+        $server = Server::findOrFail($params['serverid']);
+        $api = PanelAlphaApi::fromModel($server);
 
         if ($params['addonId']) {
             $panelAlphaServiceId = Helper::getCustomField($params['serviceid'], 'Service ID');
             if (!$panelAlphaServiceId) {
-                throw new Exception('No service id from PanelAlpha');
+                throw new Exception($LANG['messages.no_service_from_panelalpha']);
             }
 
-            $connection->deletePackageFromService($panelAlphaServiceId, $params['Package ID']);
+            $api->deletePackageFromService($panelAlphaServiceId, $params['Package ID']);
 
             return 'success';
         }
@@ -452,30 +465,34 @@ function panelalpha_TerminateAccount(array $params): string
                 'service_domain' => $params['domain']
             ];
             LocalApi::sendAdminEmail('PanelAlpha Service Termination', $params);
-            return 'The account must be deleted manually';
+            throw new Exception($LANG['messages.service_deleted_manually']);
         }
 
         $panelAlphaServiceId = $params['customfields']['Service ID'] ?? null;
         if (!$panelAlphaServiceId) {
-            throw new Exception('No service id from PanelAlpha');
+            throw new Exception($LANG['messages.no_service_from_panelalpha']);
         }
 
-        $stats = $connection->getServiceStats($panelAlphaServiceId);
-        foreach ($stats['active_instances'] as $instance) {
-            $connection->deleteInstance($instance['id']);
+        try {
+            $stats = $api->getServiceStats($panelAlphaServiceId);
+            foreach ($stats['active_instances'] as $instance) {
+                $api->deleteInstance($instance['id']);
+            }
+        } catch (Exception $e) {
         }
-        $connection->deleteService($panelAlphaServiceId);
+
+        $api->deleteService($panelAlphaServiceId);
         Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'Service ID', '');
         Helper::setServiceCustomFieldValue($params['pid'], $params['serviceid'], 'User ID', '');
 
         $panelAlphaUserId = $params['customfields']['User ID'] ?? null;
         if (!$panelAlphaUserId) {
-            throw new Exception('No user id from PanelAlpha');
+            throw new Exception($LANG['messages.no_user_from_panelalpha']);
         }
 
-        $otherServices = $connection->getUserServices($panelAlphaUserId);
+        $otherServices = $api->getUserServices($panelAlphaUserId);
         if (empty($otherServices)) {
-            $connection->deleteUser($panelAlphaUserId);
+            $api->deleteUser($panelAlphaUserId);
         }
     } catch (Exception $e) {
         return $e->getMessage();

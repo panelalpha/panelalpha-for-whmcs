@@ -84,8 +84,38 @@ add_hook('ClientAreaPageHome', 1, function () {
 
 
 add_hook('AdminAreaHeadOutput', 1, function ($params) {
-    if (isset($params['filename']) && $params['filename'] != 'configservers' && ((isset($_GET['action']) && $_GET['action'] != "manage") || !isset($_GET['id']))) {
-        return;
+    if (
+        isset($params['filename'])
+        && $params['filename'] === 'clientsservices'
+        && isset($_GET['id'])
+    ) {
+        $serviceId = $_GET['id'];
+        $service = Service::find($serviceId);
+        if ($service === null) {
+            return "";
+        }
+
+        $product = $service->product;
+        if ($product->servertype !== 'panelalpha') {
+            return "";
+        }
+
+        return <<<HTML
+<script type="text/javascript">
+$(document).ready(function () {
+	$('#inputDedicatedip').prop('disabled', true).val("");
+	$('#inputUsername').prop('disabled', true).val("");
+	$('#inputPassword').prop('disabled', true).val("");
+});
+</script>
+HTML;
+    }
+
+    if (
+        isset($params['filename'])
+        && $params['filename'] !== 'configservers'
+        && ((isset($_GET['action']) && $_GET['action'] !== "manage") || !isset($_GET['id']))) {
+        return "";
     }
     $jsFile = ROOTDIR . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "servers" . DIRECTORY_SEPARATOR . "panelalpha" . DIRECTORY_SEPARATOR . "resources" . DIRECTORY_SEPARATOR . "js" . DIRECTORY_SEPARATOR . "server.js";
     return '<script type="text/javascript"> ' . file_get_contents($jsFile) . '</script>';

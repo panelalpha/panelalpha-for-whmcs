@@ -178,6 +178,13 @@ class Request
         }
 
         if ($this->curl->getLastHttpCode() < 200 || $this->curl->getLastHttpCode() > 299) {
+            $message  = $this->curl->getLastCall()['response'] ?? null;
+            if ($message !== null) {
+                $message = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+            }
+            if (is_array($message) && isset($message['message'])) {
+                throw new \Exception($message['message']);
+            }
             throw new \Exception('Request failed');
         }
     }

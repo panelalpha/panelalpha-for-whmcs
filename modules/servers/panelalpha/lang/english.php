@@ -130,4 +130,7 @@ $_LANG['general']['none'] = 'None';
 $_LANG['messages.no_user_from_panelalpha'] = 'User from PanelAlpha not found.';
 $_LANG['messages.no_service_from_panelalpha'] = 'Service from PanelAlpha not found.';
 $_LANG['messages.change_plan_for_addons_not_supported'] = 'Change package for addons is not supported.';
+$_LANG['messages.service_deleted_manually'] = 'The service must be deleted manually.';
+$_LANG['messages.suspend_not_supported'] = 'Suspend action for addons is not supported.';
+$_LANG['messages.unsuspend_not_supported'] = 'Unsuspend for addons is not supported.';
 

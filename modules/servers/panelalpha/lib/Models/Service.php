@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static Service findOrFail(int $id)
+ * @method static Service|null find(int $id)
  * @method static Illuminate\Database\Eloquent\Collection all()
  * @method static Illuminate\Database\Eloquent\Builder active()
  * @method static Illuminate\Database\Eloquent\Builder panelalpha()
