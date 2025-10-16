@@ -92,25 +92,65 @@
 				const row = $('<div>').addClass('account-config plan-settings-cell-value').css('margin-bottom', '6px');
 
 				const label = $('<span>')
-					.addClass('plan-settings')
+					.addClass('plan-settings plan-settings--hosting-config')
 					.attr('id', field.name)
 					.text(getLangText(`aa.product.server.config.key.${field.name}`) + ':');
 
-				let valueEl = $('<span>').attr('id', field.name).css('margin-left', '4px');
+				let valueEl = $('<span>').css('margin-left', '4px').attr('id', field.name);
 
-				if (!field.value) {
-					valueEl.append($('<span>').addClass('icon').attr('data-icon', 'uncheckIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
-				} else if (field.value === true) {
-					valueEl.append($('<span>').addClass('icon').attr('data-icon', 'checkIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
-				} else {
-					valueEl.text(getLangText(`aa.product.server.config.value.${field.value}`, field.value));
+				switch (field.type) {
+					case 'text':
+						valueEl.text(field.value !== null ? capitalize(field.value) : '-');
+						break;
+
+					case 'select':
+						const selectValue = getLangText(`aa.product.server.config.value.${field.value}`);
+						valueEl.text(selectValue || (field.value !== null ? capitalize(field.value) : '-'));
+						break;
+
+					case 'checkbox':
+						if (field.value === true) {
+							valueEl.append($('<div>').addClass('icon').attr('data-icon', 'checkIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
+						} else {
+							valueEl.append($('<div>').addClass('icon').attr('data-icon', 'uncheckIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
+						}
+						break;
+
+					case 'textarea':
+						if (field.value !== null) {
+							const textareaDisplay = $('<div>').addClass('textarea-display');
+							const pre = $('<pre>').css({
+								'background-color': '#f4f4f4',
+								'padding': '4px',
+								'border': '1px solid #ddd',
+								'border-radius': '4px',
+								'font-family': 'monospace',
+								'white-space': 'pre-wrap',
+								'word-wrap': 'break-word',
+								'margin-bottom': '0',
+								'font-size': '11px'
+							}).append($('<code>').text(field.value));
+							textareaDisplay.append(pre);
+							row.append(label, textareaDisplay);
+							$('#account-config').append(row);
+							return;
+						}
+						break;
+
+					default:
+						valueEl.text('-');
+						break;
 				}
 
 				row.append(label, valueEl);
 				$('#account-config').append(row);
 			});
 
-			// Custom Hosting Account Configuration
+			function capitalize(str) {
+				return str.charAt(0).toUpperCase() + str.slice(1);
+			}
+
+// Custom Hosting Account Configuration
 			$('#hosting-account-config').empty();
 			let hostingAccountConfig = JSON.parse(JSON.stringify(accountConfig));
 			hostingAccountConfig.forEach((field) => {
@@ -123,7 +163,7 @@
 
 				if (field.type === 'text' || field.type === 'select') {
 					const input = $('<input>')
-						.attr('type', 'text')
+						.attr('type', field.type === 'select' ? 'select' : 'text')
 						.addClass('form-control input-inline input-inline--hosting-config')
 						.attr('id', field.name)
 						.attr('data-field-name', field.name)
@@ -134,6 +174,19 @@
 					});
 
 					row.append(label, input);
+				} else if (field.type === 'textarea') {
+					const textarea = $('<textarea>')
+						.addClass('form-control input-inline input-inline--hosting-config')
+						.attr('id', field.name)
+						.attr('data-field-name', field.name)
+						.attr('rows', 4)
+						.val(field.value);
+
+					textarea.on('input change', function () {
+						updateHostingAccountConfigJSON();
+					});
+
+					row.append(label, textarea);
 				} else if (field.type === 'checkbox') {
 					const switcherWrapper = $('<span>').addClass('pa-form-control');
 					const switcherLabel = $('<label>')
@@ -247,9 +300,14 @@
 			configData[fieldName] = value;
 		});
 
+		$('#hosting-account-config textarea[data-field-name], #hosting-account-config-section textarea[data-field-name]').each(function () {
+			const fieldName = $(this).attr('data-field-name');
+			const value = $(this).val();
+			configData[fieldName] = value;
+		});
+
 		$('#hosting-account-config .pa-switch input[type="checkbox"], #hosting-account-config-section .pa-switch input[type="checkbox"]').each(function () {
 			let fieldName = $(this).attr('id');
-			// Remove 'switcher' suffix if present
 			if (fieldName.endsWith('switcher')) {
 				fieldName = fieldName.replace(/switcher$/, '');
 			}
@@ -296,6 +354,11 @@
 				const switchInput = $(`#hosting-account-config #${fieldName}switcher, #hosting-account-config-section #${fieldName}switcher`);
 				if (switchInput.length && switchInput.attr('type') === 'checkbox') {
 					switchInput.prop('checked', value == '1');
+				}
+
+				const textareaInput = $(`#hosting-account-config textarea[data-field-name="${fieldName}"], #hosting-account-config-section textarea[data-field-name="${fieldName}"]`);
+				if (textareaInput.length) {
+					textareaInput.val(value);
 				}
 
 				const hiddenField = $(`#${fieldName}_config_field`);
@@ -352,6 +415,10 @@
 	});
 
 	$(document).on('input change', '#hosting-account-config input[data-field-name], #hosting-account-config-section input[data-field-name]', function () {
+		updateHostingAccountConfigJSON();
+	});
+
+	$(document).on('input change', '#hosting-account-config textarea[data-field-name], #hosting-account-config-section textarea[data-field-name]', function () {
 		updateHostingAccountConfigJSON();
 	});
 

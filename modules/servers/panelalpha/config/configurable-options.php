@@ -41,6 +41,16 @@ return [
         'type' => 4,
         'options' => ['1 PHP Worker'],
     ],
+    'php_memory_limit' => [
+        'name' => 'php_memory_limit|PHP Memory Limit',
+        'type' => 1,
+        'options' => [
+            '512|512 MB',
+            '1024|1024 MB',
+            '1536|1536 MB',
+            '2048|2048 MB',
+        ],
+    ],
     'burst_up_php_workers' => [
         'name' => 'burst_up_php_workers|Burst Up PHP Workers',
         'type' => 3,
@@ -64,10 +74,73 @@ return [
     'cpu_limit' => [
         'name' => 'cpu_limit|CPU Limit',
         'type' => 4,
-        'options' => ['1']
+        'options' => ['number|Number']
+    ],
+    'device_read_bps' => [
+        'name' => 'device_read_bps|Read Rate Limit (Bps)',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'device_write_bps' => [
+        'name' => 'device_write_bps|Write Rate Limit (Bps)',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'bandwidth_limit' => [
+        'name' => 'bandwidth_limit|Bandwidth Limit (MB Per Month)',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'mysql_databases_limit' => [
+        'name' => 'mysql_databases_limit|MySQL Databases Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'ftp_accounts_limit' => [
+        'name' => 'ftp_accounts_limit|FTP Accounts Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'sftp_accounts_limit' => [
+        'name' => 'sftp_accounts_limit|SFTP Accounts Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'addon_domains_limit' => [
+        'name' => 'addon_domains_limit|Addon Domains Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'subdomains_limit' => [
+        'name' => 'subdomains_limit|Subdomains Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'inodes_limit' => [
+        'name' => 'inodes_limit|Inodes Limit',
+        'type' => 4,
+        'options' => ['number|Number']
+    ],
+    'php_fpm_pool_settings' => [
+        'name' => 'php_fpm_pool_settings|PHP-FPM Pool Settings',
+    ],
+    'lsphp_settings' => [
+        'name' => 'lsphp_settings|LiteSpeed Settings',
+        'type' => 4,
+        'options' => ['number|Number']
     ],
     'enable_redis_cache' => [
         'name' => 'enable_redis_cache|Enabled Redis Cache',
+        'type' => 3,
+        'options' => ['Enable']
+    ],
+    'dedicated_ipv4' => [
+        'name' => 'dedicated_ipv4|Dedicated IPv4',
+        'type' => 3,
+        'options' => ['Enable']
+    ],
+    'dedicated_ipv6' => [
+        'name' => 'dedicated_ipv6|Dedicated IPv6',
         'type' => 3,
         'options' => ['Enable']
     ],

@@ -173,25 +173,35 @@
         <div id="account-config" class="pa-form-control pa-form-control--full">
             {foreach $selectedPlan['hosting_account_config'] as $config}
               <div class="account-config plan-settings-cell-value" style="margin-bottom: 6px;">
-              <span class="plan-settings plan-settings--hosting-config"
-                    id="{$config['name']}">{$LANG['aa']['product']['server']['config']['key'][{$config['name']}]}:
-              </span>
+                <span class="plan-settings plan-settings--hosting-config"
+                      id="{$config['name']}">{$LANG['aa']['product']['server']['config']['key'][{$config['name']}]}:
+                </span>
+                {if $config['type'] === 'text'}
+                  <span style="margin-left: 4px;" id="{$config['value']}">{if $config['value'] !== null}{$config['value']|capitalize}{else}-{/if}</span>
+                {elseif $config['type'] === 'select'}
+                  {if !empty({$LANG['aa']['product']['server']['config']['value'][{$config['value']}]})}
+                    <span style="margin-left: 4px;"
+                          id="{$config['value']}">{$LANG['aa']['product']['server']['config']['value'][{$config['value']}]}</span>
+                  {else}
+                    <span style="margin-left: 4px;" id="{$config['value']}">{if $config['value'] !== null}{$config['value']|capitalize}{else}-{/if}</span>
+                  {/if}
+                {elseif $config['type'] === 'checkbox'}
                   {if $config['value'] === true}
                     <div class="icon"
                          data-icon="checkIcon"
-                         style="height: 20px; width: 20px; display: inline-block; margin-left: 4px;"
+                         style="height: 20px; width: 20px; display: inline-block;"
                     ></div>
                   {elseif $config['value'] === false || $config['value'] === null}
                     <div class="icon"
                          data-icon="uncheckIcon"
-                         style="height: 20px; width: 20px; display: inline-block; margin-left: 4px;"
+                         style="height: 20px; width: 20px; display: inline-block;"
                     ></div>
-                  {elseif !empty({$LANG['aa']['product']['server']['config']['value'][{$config['value']}]})}
-                    <span style="margin-left: 4px;"
-                          id="{$config['value']}">{$LANG['aa']['product']['server']['config']['value'][{$config['value']}]}</span>
-                  {else}
-                    <span style="margin-left: 4px;" id="{$config['value']}">{$config['value']|capitalize}</span>
                   {/if}
+                {elseif $config['type'] === 'textarea' && $config['value'] !== null}
+                  <div class="textarea-display">
+                    <pre style="background-color: #f4f4f4; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; margin-bottom: 0; font-size: 11px;"><code>{$config['value']}</code></pre>
+                  </div>
+                {/if}
               </div>
             {/foreach}
         </div>
@@ -224,6 +234,12 @@
                            data-field-name="{$config['name']}"
                            value="{$config['value']}"
                     />
+                  {elseif $config['type'] === 'textarea'}
+                     <textarea class="form-control input-inline input-inline--hosting-config"
+                          id="{$config['name']}"
+                          data-field-name="{$config['name']}"
+                          rows="4"
+                      >{$config['value']}</textarea>
                   {elseif $config['type'] === 'checkbox'}
                       {include
                       file="ui/switcher.tpl"
@@ -232,11 +248,12 @@
                       class="pa-switch--right"
                       checked=($config['value'] == '1')
                       }
-                      {* Add hidden input with data-field-name for the switcher *}
                     <input type="hidden"
                            data-field-name="{$config['name']}"
                            id="{$config['name']}_config_field"
                            value="{if $config['value'] == '1'}1{else}0{/if}"/>
+                  {elseif $config['type'] === 'textarea'}
+                    <span>asdasdas</span>
                   {/if}
               </div>
             {/foreach}
@@ -282,10 +299,10 @@
 {/block}
 
 {block name="advanced"}
-  <div class="text-right">
-    <a href="#" id="toggle-advanced-mode" class="btn btn-link btn-sm">
-        {$LANG['aa']['product']['module_settings']['mode']['advanced']}
-    </a>
-  </div>
+<div class="text-right">
+<a href="#" id="toggle-advanced-mode" class="btn btn-link btn-sm">
+    {$LANG['aa']['product']['module_settings']['mode']['advanced']}
+</a>
+</div>
 {/block}
 
