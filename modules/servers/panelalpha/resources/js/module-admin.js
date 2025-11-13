@@ -30,7 +30,11 @@
 			let onboardingType = selectedOption.data('onboarding_type');
 			$('#onboarding-name').html(getLangText(`aa.product.onboarding.name.${onboardingType}`));
 			$('#onboarding-description').attr('data-original-title', getLangText(`aa.product.onboarding.description.${onboardingType}`));
-			$('#onboarding-ask-for-domain').val(selectedOption.data('onboarding_ask_for_domain'))
+
+			// Ask for Domain
+			let askForDomain = selectedOption.data('onboarding_ask_for_domain');
+			let askForDomainValue = (askForDomain === true || askForDomain === 1 || askForDomain === '1' || askForDomain === 'true') ? 'on' : '';
+			$('#onboarding-ask-for-domain').val(askForDomainValue);
 
 			// Server Group
 			let serverGroupName = selectedOption.data('server_group') ?? null;
@@ -238,6 +242,7 @@
 			let onboardingTypeValue = $(this).text();
 			$('[name="configoption[6]"]').val(onboardingTypeValue);
 		});
+		selectElement.trigger('change.panelalpha');
 	}
 
 	function initThemeSelector($) {
