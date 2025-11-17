@@ -178,7 +178,7 @@ function panelalpha_ConfigOptions($params): ?array
     }
 
     if (
-        $_POST['panelalpha-package']
+        isset($_POST['panelalpha-package']) && $_POST['panelalpha-package'] !== ''
         && $_REQUEST['action'] === 'save'
         && basename($_SERVER["SCRIPT_NAME"]) === 'configaddons.php'
     ) {
@@ -191,7 +191,7 @@ function panelalpha_ConfigOptions($params): ?array
                     'friendly_name' => 'Package ID'
                 ],
                 [
-                    'value' => $_POST['panelalpha-package']
+                    'value' => $_POST['panelalpha-package'] ?? ''
                 ]
             );
     }
