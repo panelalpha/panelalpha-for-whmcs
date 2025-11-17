@@ -190,6 +190,37 @@ class Request
     }
 
     /**
+     * @param string $method
+     * @param string $endpoint
+     * @param array $body
+     * @param int|null $userId
+     * @return array|null
+     * @throws \Exception
+     */
+    public function callUserApi(string $method, string $endpoint, array $body = [], ?int $userId = null): ?array
+    {
+        $url = $this->createUri() . '/api/' . $endpoint;
+        $options = $this->createOptions();
+        
+        // Add X-PanelAlpha-User header if userId is provided
+        if ($userId !== null) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-PanelAlpha-User: ' . $userId;
+        }
+        
+        $this->setSecureMode();
+
+        try {
+            $response = $this->curl->call($method, $url, $body, $options);
+            $this->log();
+            $this->processResponse();
+
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
+        return $this->parseResponse($response);
+    }
+
+    /**
      * @param string $response
      * @return array|null
      */
