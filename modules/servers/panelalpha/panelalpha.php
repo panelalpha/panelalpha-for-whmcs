@@ -685,32 +685,56 @@ function panelalpha_AdminServicesTabFields($params): array
 
     // Handle SSO to Hosting Control Panel (cPanel/DirectAdmin/Plesk)
     if (isset($_REQUEST['hosting_sso']) && $_REQUEST['hosting_sso'] === 'yes' && isset($_REQUEST['account_id'])) {
-        $service = Service::find($params['serviceid']);
-        $server = $service->serverModel;
-        $userId = Helper::getCustomField($service->id, 'User ID');
-        $accountId = (int)$_REQUEST['account_id'];
-        
-        $api = PanelAlphaApi::fromModel($server);
-        $result = $api->getControlPanelSsoUrl($accountId, $userId);
-        
-        if (!empty($result['url'])) {
-            header("Location: {$result['url']}");
+        try {
+            $service = Service::find($params['serviceid']);
+            $server = $service->serverModel;
+            $userId = Helper::getCustomField($service->id, 'User ID');
+            $accountId = (int)$_REQUEST['account_id'];
+            
+            $api = PanelAlphaApi::fromModel($server);
+            $result = $api->getControlPanelSsoUrl($accountId, $userId);
+            
+            if (!empty($result['url'])) {
+                header("Location: {$result['url']}");
+                exit();
+            }
+        } catch (Exception $e) {
             exit();
         }
     }
 
     $LANG = Lang::getLang();
-    $service = Service::find($params['serviceid']);
-    $server = $service->serverModel;
-    $panelAlphaServiceId = Helper::getCustomField($service->id, 'Service ID');
-    $api = PanelAlphaApi::fromModel($server);
-    $panelAlphaService = $api->getService($panelAlphaServiceId);
     
-    $serverAccounts = $panelAlphaService['server_accounts'] ?? [];
+    try {
+        $service = Service::find($params['serviceid']);
+        $server = $service->serverModel;
+        $panelAlphaServiceId = Helper::getCustomField($service->id, 'Service ID');
+        
+        if (!$panelAlphaServiceId) {
+            return [
+                $LANG['aa']['service']['panelalpha']['sso'] => 
+                    '<a class="btn btn-default" onclick="window.open(window.location + \'&sso=yes\', \'_blank\')">' . 
+                    $LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] . '</a>'
+            ];
+        }
+        
+        $api = PanelAlphaApi::fromModel($server);
+        $panelAlphaService = $api->getService($panelAlphaServiceId);
+        
+        // Get server type from plan
+        $serverType = $panelAlphaService['plan']['server_type'] ?? null;
+        $supportedTypes = ['cpanel', 'directadmin', 'plesk'];
+        $serverAccounts = $panelAlphaService['server_accounts'] ?? [];
+        $showHostingSSO = in_array($serverType, $supportedTypes) && !empty($serverAccounts);
+    } catch (Exception $e) {
+        $serverAccounts = [];
+        $showHostingSSO = false;
+    }
     
     $view = new Smarty();
     $view->assign('LANG', $LANG);
     $view->assign('serverAccountsJson', json_encode($serverAccounts));
+    $view->assign('showHostingSSO', $showHostingSSO);
     
     return [
         $LANG['aa']['service']['panelalpha']['sso'] => $view->fetch('admin-sso-buttons.tpl')
