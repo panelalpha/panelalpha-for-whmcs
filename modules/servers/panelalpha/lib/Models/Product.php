@@ -239,27 +239,29 @@ class Product extends Model
      */
     public function setShowDomainOption(): void
     {
-        $automaticInstallInstance = $this->isAutomaticInstallInstanceEnabled();
+        if (!$this->isAutomaticInstallInstanceEnabled()) {
+            $this->showdomainoptions = 0;
+            $this->save();
+            return;
+        }
+
         $onboardingType = $this->getOnboardingType();
         $onboardingAskForDomain = $this->getOnboardingAskForDomain();
 
-        if ($automaticInstallInstance && $onboardingType === 'Standard') {
-            $this->showdomainoptions = true;
+        if ($onboardingType === 'Standard') {
+            $this->showdomainoptions = 1;
             $this->save();
             return;
         }
 
-        if (
-            $automaticInstallInstance
-            && ($onboardingType === 'Quick' || $onboardingType === 'Super Quick')
-            && $onboardingAskForDomain
-        ) {
-            $this->showdomainoptions = true;
+        if (($onboardingType === 'Quick' || $onboardingType === 'Super Quick') 
+            && $onboardingAskForDomain === 'on') {
+            $this->showdomainoptions = 1;
             $this->save();
             return;
         }
 
-        $this->showdomainoptions = false;
+        $this->showdomainoptions = 0;
         $this->save();
     }
 
@@ -314,9 +316,9 @@ class Product extends Model
         return $this->configoption6 ?? null;
     }
 
-    public function getOnboardingAskForDomain(): bool
+    public function getOnboardingAskForDomain(): ?string
     {
-        return $this->configoption7 === 'on';
+        return $this->configoption7 ?? null;
     }
 
     public function hasAutomaticallySetNumberOfSitesOnUpgradeFromTrialOption(): bool
