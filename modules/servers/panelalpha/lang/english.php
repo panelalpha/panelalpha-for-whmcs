@@ -133,6 +133,8 @@ $_LANG['aa']['addon']['module_settings']['theme_automation']['no action'] = 'No 
 
 $_LANG['aa']['service']['panelalpha']['sso'] = 'SSO';
 $_LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] = 'Log in to PanelAlpha as User';
+$_LANG['aa']['service']['panelalpha']['login_to_hosting_control_panel_as_user'] = 'Log in to Hosting Control Panel as User';
+$_LANG['aa']['service']['panelalpha']['no_hosting_accounts'] = 'No hosting accounts available';
 
 $_LANG['aa']['button']['generate_configurable_options'] = 'Generate Configurable Options';
 

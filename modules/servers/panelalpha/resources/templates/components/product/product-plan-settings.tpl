@@ -50,6 +50,10 @@
 
           <input type="hidden" name="configoption[6]" value=""/>
 
+          <!-- ASK FOR DOMAIN ON ONBOARDING -->
+          <input type="hidden" name="configoption[7]" id="onboarding-ask-for-domain"
+                 value="{$product->configoption7|default:''}"/>
+
           <!-- ADVANCED MODE STATE -->
           <input type="hidden" name="configoption[11]" id="advanced-mode-state"
                  value="{$product->configoption11|default:'0'}"/>
