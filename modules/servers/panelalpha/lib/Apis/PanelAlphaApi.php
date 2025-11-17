@@ -426,4 +426,12 @@ class PanelAlphaApi
         $this->request->setAction(__FUNCTION__);
         return $this->request->call($method, $endpoint);
     }
+
+    public function getControlPanelSsoUrl(int $serverAccountId, int $userId): array
+    {
+        $endpoint = 'server-accounts/' . $serverAccountId . '/control-panel-sso-url';
+        $method = 'POST';
+        $this->request->setAction(__FUNCTION__);
+        return $this->request->callUserApi($method, $endpoint, [], $userId);
+    }
 }
