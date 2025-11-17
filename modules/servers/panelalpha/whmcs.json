@@ -2,7 +2,7 @@
     "schema": "1.0",
     "type": "whmcs-provisioning",
     "name": "PanelAlpha",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "license": "",
     "category": "provisioning",
     "description": {
@@ -14,7 +14,7 @@
     },
     "support": {
         "homepage": "https:\/\/www.panelalpha.com\/",
-        "email": "presales@panelalpha.com", 
+        "email": "presales@panelalpha.com",
         "support_url": "https:\/\/manage.panelalpha.com\/contact",
         "docs_url": "https:\/\/www.panelalpha.com/documentation\/"
     },
