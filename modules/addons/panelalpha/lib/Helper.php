@@ -316,4 +316,14 @@ class Helper
         echo $pdf;
         die();
     }
+
+    public static function localApi($command, $data = [])
+    {
+        return localAPI($command, $data, self::getAdmin());
+    }
+
+    private static function getAdmin()
+    {
+        return Capsule::table('tbladmins')->where('roleid', '1')->value('username');
+    }
 }
