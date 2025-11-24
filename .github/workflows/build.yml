@@ -1,0 +1,29 @@
+name: Build Package
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Package
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: panelalpha-for-whmcs
+          path: panelalpha-for-whmcs.zip
