@@ -1,0 +1,16 @@
+# Build artifacts
+panelalpha-for-whmcs.zip
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+error_log
+*.log
