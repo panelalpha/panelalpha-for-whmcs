@@ -37,7 +37,7 @@ HTML;
         'name' => 'PanelAlpha WordPress Hosting For WHMCS',
         'description' => 'PanelAlpha WordPress Hosting For WHMCS will let you complete all essential tasks in the provisioning and management of WordPress websites without leaving your WHMCS system.',
         'author' => 'PanelAlpha',
-        'version' => '1.5.2',
+        'version' => '1.5.3',
         'fields' => [
             'api_token' => [
                 'FriendlyName' => 'API Token',
