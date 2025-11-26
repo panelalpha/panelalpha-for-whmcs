@@ -210,6 +210,12 @@ try {
             if ($zone === null) {
                 Helper::jsonResponse(["error" => "Zone not found"], 404);
             }
+
+            run_hook('PanelalphaDnsZoneCreated', [
+                'zone_id' => $zone->id,
+                'zone_name' => $zoneName,
+            ]);
+
             Helper::jsonResponse($zone);
             break;
 
