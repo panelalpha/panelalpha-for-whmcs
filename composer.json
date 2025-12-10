@@ -1,0 +1,14 @@
+{
+    "name": "panelalpha/panelalpha-for-whmcs",
+    "description": "PanelAlpha module for WHMCS",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "mockery/mockery": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "WHMCS\\Module\\Addon\\PanelAlpha\\": "modules/addons/panelalpha/lib/",
+            "WHMCS\\Module\\Server\\PanelAlpha\\": "modules/servers/panelalpha/lib/"
+        }
+    }
+}
