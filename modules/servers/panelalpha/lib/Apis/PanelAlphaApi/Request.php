@@ -147,9 +147,8 @@ class Request
      */
     protected function setSecureMode(): void
     {
-        if (!$this->secureMode) {
-            $this->curl->verifySsl(false);
-        }
+        // Always verify TLS certificates to prevent MITM; insecure mode is not permitted.
+        $this->curl->verifySsl(true);
     }
 
     /**
@@ -157,7 +156,7 @@ class Request
      */
     protected function log(): void
     {
-        $lastCall = $this->curl->getLastCall();
+        $lastCall = $this->sanitizeLastCall($this->curl->getLastCall());
 
         logModuleCall(
             'panelalpha',
@@ -218,6 +217,32 @@ class Request
             throw new \Exception($e->getMessage());
         }
         return $this->parseResponse($response);
+    }
+
+    /**
+     * @param array $lastCall
+     * @return array
+     */
+    protected function sanitizeLastCall(array $lastCall): array
+    {
+        $lastCall['requestHeaders'] = $this->redactSecrets($lastCall['requestHeaders'] ?? '');
+        $lastCall['responseHeaders'] = $this->redactSecrets($lastCall['responseHeaders'] ?? '');
+
+        return $lastCall;
+    }
+
+    /**
+     * Redact sensitive headers before logging.
+     *
+     * @param string $payload
+     * @return string
+     */
+    protected function redactSecrets(string $payload): string
+    {
+        $payload = preg_replace('/Authorization:\\s*Bearer\\s+[^\\r\\n]+/i', 'Authorization: Bearer [redacted]', $payload);
+        $payload = preg_replace('/X-PanelAlpha-User:\\s*[^\\r\\n]+/i', 'X-PanelAlpha-User: [redacted]', $payload);
+
+        return $payload;
     }
 
     /**
