@@ -7,6 +7,13 @@ use WHMCS\Module\Server\PanelAlpha\Curl;
 class Request
 {
     public const DEFAULT_PORT = '8443';
+    private const SENSITIVE_KEYS = [
+        'password',
+        'user_password',
+        'token',
+        'accesshash',
+        'access_hash',
+    ];
 
     public $curl;
 
@@ -227,6 +234,8 @@ class Request
     {
         $lastCall['requestHeaders'] = $this->redactSecrets($lastCall['requestHeaders'] ?? '');
         $lastCall['responseHeaders'] = $this->redactSecrets($lastCall['responseHeaders'] ?? '');
+        $lastCall['request'] = $this->redactPayload($lastCall['request'] ?? '');
+        $lastCall['response'] = $this->redactPayload($lastCall['response'] ?? '');
 
         return $lastCall;
     }
@@ -241,6 +250,121 @@ class Request
     {
         $payload = preg_replace('/Authorization:\\s*Bearer\\s+[^\\r\\n]+/i', 'Authorization: Bearer [redacted]', $payload);
         $payload = preg_replace('/X-PanelAlpha-User:\\s*[^\\r\\n]+/i', 'X-PanelAlpha-User: [redacted]', $payload);
+        $payload = $this->redactKeyValueStrings($payload);
+
+        return $payload;
+    }
+
+    /**
+     * Remove secrets from request/response bodies.
+     *
+     * @param string|null $payload
+     * @return string
+     */
+    protected function redactPayload(?string $payload): string
+    {
+        if (empty($payload)) {
+            return $payload ?? '';
+        }
+
+        $sanitizedJson = $this->redactJsonPayload($payload);
+        if ($sanitizedJson !== null) {
+            return $sanitizedJson;
+        }
+
+        $sanitizedQuery = $this->redactQueryString($payload);
+        if ($sanitizedQuery !== null) {
+            return $sanitizedQuery;
+        }
+
+        return $this->redactSecrets($payload);
+    }
+
+    /**
+     * Redact secrets from JSON payloads.
+     *
+     * @param string $payload
+     * @return string|null
+     */
+    protected function redactJsonPayload(string $payload): ?string
+    {
+        $decoded = json_decode($payload, true);
+        if ($decoded === null || json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return null;
+        }
+
+        $this->redactArrayValues($decoded);
+
+        return json_encode($decoded);
+    }
+
+    /**
+     * Redact secrets from query string payloads.
+     *
+     * @param string $payload
+     * @return string|null
+     */
+    protected function redactQueryString(string $payload): ?string
+    {
+        if (strpos($payload, '=') === false) {
+            return null;
+        }
+
+        parse_str($payload, $parsed);
+
+        if (empty($parsed)) {
+            return null;
+        }
+
+        $this->redactArrayValues($parsed);
+
+        return urldecode(http_build_query($parsed));
+    }
+
+    /**
+     * Redact nested array values using the sensitive keys list.
+     *
+     * @param array $payload
+     * @return void
+     */
+    protected function redactArrayValues(array &$payload): void
+    {
+        foreach ($payload as $key => &$value) {
+            if (is_array($value)) {
+                $this->redactArrayValues($value);
+                continue;
+            }
+
+            if (in_array(strtolower((string)$key), self::SENSITIVE_KEYS, true)) {
+                $value = '[redacted]';
+            }
+        }
+    }
+
+    /**
+     * Redact key/value pairs when payload parsing is not possible.
+     *
+     * @param string $payload
+     * @return string
+     */
+    protected function redactKeyValueStrings(string $payload): string
+    {
+        $sensitivePattern = implode('|', array_map(fn($value) => preg_quote($value, '/'), self::SENSITIVE_KEYS));
+
+        $payload = preg_replace_callback(
+            '/("?(?:' . $sensitivePattern . ')"?\\s*:\\s*)(\"[^\"]*\"|[^,\\s}]+)/i',
+            static function (array $matches): string {
+                $quote = substr($matches[2], 0, 1) === '"' ? '"' : '';
+                return $matches[1] . $quote . '[redacted]' . ($quote ? '"' : '');
+            },
+            $payload
+        );
+
+        $payload = preg_replace(
+            '/((?:\\?|&|;|^)(?:' . $sensitivePattern . ')=)([^&;\\s]+)/i',
+            '$1[redacted]',
+            $payload
+        );
 
         return $payload;
     }
