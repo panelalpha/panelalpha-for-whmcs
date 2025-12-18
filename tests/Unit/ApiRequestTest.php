@@ -28,7 +28,7 @@ class ApiRequestTest extends TestCase
         
         // Mock Curl
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl')->with(false)->never(); // Secure mode is on
+        $curlMock->shouldReceive('verifySsl')->with(true)->once(); // Secure mode is enforced
         $curlMock->shouldReceive('call')
             ->with('GET', 'https://example.com:8443/api/admin/test', [], Mockery::type('array'))
             ->once()
@@ -65,7 +65,7 @@ class ApiRequestTest extends TestCase
         $request = new Request($params);
         
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl');
+        $curlMock->shouldReceive('verifySsl')->with(true)->once();
         $curlMock->shouldReceive('call')->andReturn('');
         $curlMock->shouldReceive('getLastCall')->andReturn(['requestHeaders'=>'','request'=>'','responseHeaders'=>'','response'=>'']);
         $curlMock->shouldReceive('getLastHttpCode')->andReturn(401);
@@ -89,7 +89,7 @@ class ApiRequestTest extends TestCase
         $request = new Request($params);
         
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl');
+        $curlMock->shouldReceive('verifySsl')->with(true)->once();
         $curlMock->shouldReceive('call')->andReturn('{"message": "Something went wrong"}');
         $curlMock->shouldReceive('getLastCall')->andReturn([
             'requestHeaders' => '',
