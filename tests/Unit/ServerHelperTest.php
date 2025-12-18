@@ -14,4 +14,15 @@ class ServerHelperTest extends TestCase
         $this->assertEquals($length, strlen($string));
         $this->assertMatchesRegularExpression('/^[a-zA-Z0-9]+$/', $string);
     }
+
+    public function testGenerateSecurePassword()
+    {
+        $length = 16;
+        $string = Helper::generateSecurePassword($length);
+        $this->assertEquals($length, strlen($string));
+        $this->assertMatchesRegularExpression('/[a-z]/', $string);
+        $this->assertMatchesRegularExpression('/[A-Z]/', $string);
+        $this->assertMatchesRegularExpression('/[0-9]/', $string);
+        $this->assertMatchesRegularExpression('/[!@#$%^&*()\\-_=+\\[\\]{};:,.<>?]/', $string);
+    }
 }
