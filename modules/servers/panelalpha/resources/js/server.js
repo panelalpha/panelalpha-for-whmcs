@@ -109,10 +109,6 @@ function panelalpha_customizeSecureToggle()
 			'<p id="' + helperId + '" class="text-muted" style="margin-top: 8px;">Keep enabled to validate the certificate. Disable only when connecting to a self-signed certificate.</p>'
 		);
 	}
-
-	if (!secureInput.prop("checked")) {
-		secureInput.prop("checked", true);
-	}
 }
 
 $(document).ready(function () {
@@ -166,5 +162,4 @@ $(document).ready(function () {
 		}
 	});
 });
-
 
