@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use WHMCS\Module\Server\PanelAlpha\Apis\PanelAlphaApi\Request;
 use WHMCS\Module\Server\PanelAlpha\Curl;
 use Mockery;
+use ReflectionMethod;
 
 class ApiRequestTest extends TestCase
 {
@@ -28,7 +29,7 @@ class ApiRequestTest extends TestCase
         
         // Mock Curl
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl')->with(false)->never(); // Secure mode is on
+        $curlMock->shouldReceive('verifySsl')->with(true)->once(); // Secure mode is enforced
         $curlMock->shouldReceive('call')
             ->with('GET', 'https://example.com:8443/api/admin/test', [], Mockery::type('array'))
             ->once()
@@ -65,7 +66,7 @@ class ApiRequestTest extends TestCase
         $request = new Request($params);
         
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl');
+        $curlMock->shouldReceive('verifySsl')->with(true)->once();
         $curlMock->shouldReceive('call')->andReturn('');
         $curlMock->shouldReceive('getLastCall')->andReturn(['requestHeaders'=>'','request'=>'','responseHeaders'=>'','response'=>'']);
         $curlMock->shouldReceive('getLastHttpCode')->andReturn(401);
@@ -89,7 +90,7 @@ class ApiRequestTest extends TestCase
         $request = new Request($params);
         
         $curlMock = Mockery::mock(Curl::class);
-        $curlMock->shouldReceive('verifySsl');
+        $curlMock->shouldReceive('verifySsl')->with(true)->once();
         $curlMock->shouldReceive('call')->andReturn('{"message": "Something went wrong"}');
         $curlMock->shouldReceive('getLastCall')->andReturn([
             'requestHeaders' => '',
@@ -103,5 +104,34 @@ class ApiRequestTest extends TestCase
         $request->setAction('test');
 
         $request->call('GET', 'test');
+    }
+
+    public function testSensitiveDataIsRedactedBeforeLogging()
+    {
+        $params = [
+            'serverhostname' => 'example.com',
+            'serveraccesshash' => 'token'
+        ];
+
+        $request = new Request($params);
+
+        $lastCall = [
+            'requestHeaders' => "Authorization: Bearer very-secret\r\nX-PanelAlpha-User: 123",
+            'responseHeaders' => "HTTP/1.1 200 OK\r\nAuthorization: Bearer another-secret",
+            'request' => 'password=supersecret&token=abc123&other=value',
+            'response' => '{"token":"abc123","nested":{"password":"hidden-pass"},"data":{"value":"safe"}}'
+        ];
+
+        $sanitizeMethod = new ReflectionMethod(Request::class, 'sanitizeLastCall');
+        $sanitizeMethod->setAccessible(true);
+
+        $sanitized = $sanitizeMethod->invoke($request, $lastCall);
+
+        $this->assertStringNotContainsString('supersecret', $sanitized['request']);
+        $this->assertStringNotContainsString('abc123', $sanitized['response']);
+        $this->assertStringContainsString('password=[redacted]', $sanitized['request']);
+        $this->assertStringContainsString('"token":"[redacted]"', $sanitized['response']);
+        $this->assertStringContainsString('Authorization: Bearer [redacted]', $sanitized['requestHeaders']);
+        $this->assertStringContainsString('X-PanelAlpha-User: [redacted]', $sanitized['requestHeaders']);
     }
 }

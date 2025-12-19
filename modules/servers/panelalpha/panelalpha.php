@@ -295,7 +295,7 @@ function panelalpha_CreateAccount(array $params): string
                 'last_name' => $params['clientsdetails']['lastname'],
                 'company_name' => $params['clientsdetails']['companyname'] ?? "",
                 'email' => $params['clientsdetails']['email'],
-                'password' => Helper::generateRandomString(8)
+                'password' => Helper::generateSecurePassword()
             ];
             $panelAlphaUser = $api->createUser($data);
 
