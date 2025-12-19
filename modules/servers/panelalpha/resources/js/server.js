@@ -93,6 +93,28 @@ function panelalpha_clearHostname()
 	hostnameInput.val(value.replace(/^https?:\/\//, ''))
 }
 
+function panelalpha_customizeSecureToggle()
+{
+	const secureInput = $("#inputSecure");
+	if (!secureInput.length) {
+		return;
+	}
+
+	const secureRow = secureInput.closest("tr");
+	secureRow.find(".fieldlabel").text("Verify SSL Certificate");
+
+	const helperId = "panelalpha-ssl-helper";
+	if (!secureRow.find("#" + helperId).length) {
+		secureRow.find(".fieldarea").append(
+			'<p id="' + helperId + '" class="text-muted" style="margin-top: 8px;">Keep enabled to validate the certificate. Disable only when connecting to a self-signed certificate.</p>'
+		);
+	}
+
+	if (!secureInput.prop("checked")) {
+		secureInput.prop("checked", true);
+	}
+}
+
 $(document).ready(function () {
 	let selectServerType = $("#inputServerType").val();
 	let selectServerTypeAdvanced = $("#addType").val();
@@ -102,7 +124,8 @@ $(document).ready(function () {
 		panelalpha_hideFields();
 		panelalpha_addInput();
 		panelalpha_showProtocolSelect();
-		panelalpha_clearHostname()
+		panelalpha_clearHostname();
+		panelalpha_customizeSecureToggle();
 	}
 
 	$('#newToken').on('change', function () {
@@ -122,6 +145,7 @@ $(document).ready(function () {
 			panelalpha_addInput();
 			panelalpha_showProtocolSelect();
 			panelalpha_clearHostname();
+			panelalpha_customizeSecureToggle();
 		}
 
 	});
@@ -138,9 +162,9 @@ $(document).ready(function () {
 			panelalpha_addInput();
 			panelalpha_showProtocolSelect()
 			panelalpha_clearHostname();
+			panelalpha_customizeSecureToggle();
 		}
 	});
 });
-
 
 

@@ -87,8 +87,16 @@ class Request
      */
     protected function makeSecureMode(array $params): bool
     {
-        return (!empty($params['serversecure']))
-            || (!empty($params['secure']) && $params['secure'] === 'on');
+        if (array_key_exists('serversecure', $params)) {
+            return (bool) $params['serversecure'];
+        }
+
+        if (array_key_exists('secure', $params)) {
+            return in_array($params['secure'], ['on', 1, '1', true], true);
+        }
+
+        // Default to verifying certificates unless explicitly disabled.
+        return true;
     }
 
     /**
@@ -154,8 +162,8 @@ class Request
      */
     protected function setSecureMode(): void
     {
-        // Always verify TLS certificates to prevent MITM; insecure mode is not permitted.
-        $this->curl->verifySsl(true);
+        // Allow disabling verification (e.g. self-signed certs) via the server "Secure" toggle.
+        $this->curl->verifySsl($this->secureMode);
     }
 
     /**
