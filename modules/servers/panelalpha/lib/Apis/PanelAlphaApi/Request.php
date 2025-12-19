@@ -88,7 +88,7 @@ class Request
     protected function makeSecureMode(array $params): bool
     {
         if (array_key_exists('serversecure', $params)) {
-            return (bool) $params['serversecure'];
+            return in_array($params['serversecure'], ['on', 1, '1', true], true);
         }
 
         if (array_key_exists('secure', $params)) {

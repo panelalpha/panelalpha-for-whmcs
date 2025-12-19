@@ -58,6 +58,22 @@ class RequestTest extends TestCase
 
         $secureMode = $reflection->getProperty('secureMode');
         $secureMode->setAccessible(true);
+        $this->assertTrue($secureMode->getValue($request));
+    }
+
+    public function testConstructorCanDisableSecureMode()
+    {
+        $params = [
+            'hostname' => 'example.com',
+            'accesshash' => 'mytoken',
+            'serversecure' => 0
+        ];
+
+        $request = new Request($params);
+        $reflection = new ReflectionClass($request);
+
+        $secureMode = $reflection->getProperty('secureMode');
+        $secureMode->setAccessible(true);
         $this->assertFalse($secureMode->getValue($request));
     }
 }
