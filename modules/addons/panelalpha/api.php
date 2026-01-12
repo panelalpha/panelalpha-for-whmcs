@@ -173,14 +173,26 @@ try {
             $zoneName = $_REQUEST['zone_name'];
 
             // client
-            if (empty($_REQUEST['user_email'])) {
-                Helper::jsonResponse(["error" => "Parameter 'user_email' is required"], 422);
+            $client = null;
+            if (!empty($_REQUEST['user_email'])) {
+                $userEmail = filter_var($_REQUEST['user_email'], FILTER_VALIDATE_EMAIL);
+                if ($userEmail === false) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'user_email'"], 422);
+                }
+                $client = Client::where('email', $userEmail)->first();
             }
-            $userEmail = filter_var($_REQUEST['user_email'], FILTER_VALIDATE_EMAIL);
-            if ($userEmail === false) {
-                Helper::jsonResponse(["error" => "Invalid value for parameter 'user_email'"], 422);
+
+            if (!empty($_REQUEST['username'])) {
+                if (!is_string($_REQUEST['username'])) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'username'"], 422);
+                }
+                $username = $_REQUEST['username'];
+
+                $client = Client::whereHas('hostings', function ($query) use ($username) {
+                    $query->where('username', $username);
+                })->first();
             }
-            $client = Client::where('email', $userEmail)->first();
+
             if ($client === null) {
                 Helper::jsonResponse(["error" => "Client not found"], 404);
             }
@@ -229,15 +241,27 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
 
-            // client id
-            if (empty($_REQUEST['user_email'])) {
-                Helper::jsonResponse(["error" => "Parameter 'user_email' is required"], 422);
+            // client
+            $client = null;
+            if (!empty($_REQUEST['user_email'])) {
+                $userEmail = filter_var($_REQUEST['user_email'], FILTER_VALIDATE_EMAIL);
+                if ($userEmail === false) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'user_email'"], 422);
+                }
+                $client = Client::where('email', $userEmail)->first();
             }
-            $userEmail = filter_var($_REQUEST['user_email'], FILTER_VALIDATE_EMAIL);
-            if ($userEmail === false) {
-                Helper::jsonResponse(["error" => "Invalid value for parameter 'user_email'"], 422);
+
+            if (!empty($_REQUEST['username'])) {
+                if (!is_string($_REQUEST['username'])) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'username'"], 422);
+                }
+                $username = $_REQUEST['username'];
+
+                $client = Client::whereHas('hostings', function ($query) use ($username) {
+                    $query->where('username', $username);
+                })->first();
             }
-            $client = Client::where('email', $userEmail)->first();
+
             if ($client === null) {
                 Helper::jsonResponse(["error" => "Client not found"], 404);
             }

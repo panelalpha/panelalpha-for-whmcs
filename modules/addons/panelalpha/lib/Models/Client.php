@@ -18,4 +18,9 @@ class Client extends EloquentModel
     protected $softDelete = false;
 
     public $timestamps = false;
+
+    public function hostings()
+    {
+        return $this->hasMany(Hosting::class, 'userid');
+    }
 }
