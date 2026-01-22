@@ -256,8 +256,6 @@
                            data-field-name="{$config['name']}"
                            id="{$config['name']}_config_field"
                            value="{if $config['value'] == '1'}1{else}0{/if}"/>
-                  {elseif $config['type'] === 'textarea'}
-                    <span>asdasdas</span>
                   {/if}
               </div>
             {/foreach}
