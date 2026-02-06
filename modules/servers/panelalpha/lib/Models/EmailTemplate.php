@@ -4,6 +4,10 @@ namespace WHMCS\Module\Server\PanelAlpha\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $subject
+ * @property string $message
+ */
 class EmailTemplate extends Model
 {
     protected $table = 'tblemailtemplates';

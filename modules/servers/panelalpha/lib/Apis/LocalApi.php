@@ -6,7 +6,7 @@ use WHMCS\Module\Server\PanelAlpha\Models\EmailTemplate;
 
 class LocalApi
 {
-    public static function sendAdminEmail(string $templateName, array $params)
+    public static function sendAdminEmail(string $templateName, array $params): void
     {
         $command = 'SendAdminEmail';
         $postData = [
@@ -18,15 +18,27 @@ class LocalApi
                 'service_domain' => $params['service_domain']
             ],
         ];
-        return localAPI($command, $postData);
+        localAPI($command, $postData);
     }
 
-    public static function sendUserEmail(string $templateName, string $language, array $params)
+    public static function sendUserEmail(string $templateName, string $language, array $params): void
     {
+        /** @var EmailTemplate|null $emailTemplate */
         $emailTemplate = EmailTemplate::where('name', $templateName)
             ->where('language', $language)
             ->first();
 
+        if ($emailTemplate === null) {
+            /** @var EmailTemplate|null $emailTemplate */
+            $emailTemplate = EmailTemplate::where('name', $templateName)
+                ->where('language', '') //default
+                ->first();
+        }
+
+        if ($emailTemplate === null) {
+            logActivity("PanelAlpha: Email Sending Failed - Service ID: {$params['service_id']} - {$templateName}");
+            return;
+        }
 
         $command = 'SendEmail';
         $postData = [
@@ -41,6 +53,6 @@ class LocalApi
                 'login_url' => $params['login_url']
             ]))
         ];
-        return localAPI($command, $postData);
+        localAPI($command, $postData);
     }
 }
