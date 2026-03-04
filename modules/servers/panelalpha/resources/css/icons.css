@@ -63,6 +63,10 @@
     background-image: url('../icons/zimbra.svg');
 }
 
+.server-icon[data-server="dns-manager-for-whmcs"] {
+    background-image: url('../icons/dns-manager-for-whmcs.png');
+}
+
 .icon {
     max-width: 20px;
     height: 20px;

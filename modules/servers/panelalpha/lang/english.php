@@ -80,6 +80,7 @@ $_LANG['aa']['product']['server']['config']['value']['dfw'] = 'Dallas, TX, USA';
 $_LANG['aa']['product']['dns_server']['powerdns'] = 'PowerDNS';
 $_LANG['aa']['product']['dns_server']['cloudflare'] = 'Cloudflare';
 $_LANG['aa']['product']['dns_server']['cpanel-dns-only'] = 'cPanel DNSOnly';
+$_LANG['aa']['product']['dns_server']['dns-manager-for-whmcs'] = 'DNS Manager For WHMCS';
 $_LANG['aa']['product']['dns_server']['cpanel'] = 'cPanel\'s DNS Server';
 $_LANG['aa']['product']['dns_server']['directadmin'] = 'Direct Admin\'s DNS Server';
 $_LANG['aa']['product']['dns_server']['plesk'] = 'Plesk\'s DNS Server';

@@ -52,7 +52,7 @@
 
           <!-- ASK FOR DOMAIN ON ONBOARDING -->
           <input type="hidden" name="configoption[7]" id="onboarding-ask-for-domain"
-                 value="{$product->configoption7|default:''}"/>
+                 value="{$selectedPlan['config']['onboarding']['ask_for_domain']}"/>
 
           <!-- ADVANCED MODE STATE -->
           <input type="hidden" name="configoption[11]" id="advanced-mode-state"
