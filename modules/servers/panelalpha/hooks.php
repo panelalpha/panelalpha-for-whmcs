@@ -146,7 +146,7 @@ add_hook('ServerAdd', 1, function ($params) {
     if ($server->type === 'panelalpha') {
         $server->setHostname();
 
-        EmailTemplate::createEmailTemplatesIfNotExist();
+        EmailTemplate::createPanelalphaEmailTemplates();
     }
 });
 
