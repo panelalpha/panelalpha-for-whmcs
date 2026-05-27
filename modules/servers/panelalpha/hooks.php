@@ -194,9 +194,25 @@ add_hook('CustomFieldSave', 1, function ($params) {
         ];
     }
 
-    // get service details from panelalpha
+    // get service details from panelalpha (best-effort backfill; must not block WHMCS save)
     $api = new PanelAlphaApi($service->serverModel->toArray());
-    $panelalphaService = $api->getService($params['value']);
+    try {
+        $panelalphaService = $api->getService((int) $params['value']);
+    } catch (Exception $e) {
+        logModuleCall(
+            'panelalpha',
+            'CustomFieldSave',
+            [
+                'whmcs_service_id' => $service->id,
+                'panelalpha_service_id' => $params['value'],
+            ],
+            $e->getMessage(),
+        );
+
+        return [
+            'value' => $params['value'],
+        ];
+    }
 
     $product = $service->product;
 
