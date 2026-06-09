@@ -193,6 +193,17 @@ try {
                 })->first();
             }
 
+            if ($client === null && !empty($_REQUEST['reseller_username'])) {
+                if (!is_string($_REQUEST['reseller_username'])) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'reseller_username'"], 422);
+                }
+                $resellerUsername = $_REQUEST['reseller_username'];
+
+                $client = Client::whereHas('hostings', function ($query) use ($resellerUsername) {
+                    $query->where('username', $resellerUsername);
+                })->first();
+            }
+
             if ($client === null) {
                 Helper::jsonResponse(["error" => "Client not found"], 404);
             }
@@ -259,6 +270,17 @@ try {
 
                 $client = Client::whereHas('hostings', function ($query) use ($username) {
                     $query->where('username', $username);
+                })->first();
+            }
+
+            if ($client === null && !empty($_REQUEST['reseller_username'])) {
+                if (!is_string($_REQUEST['reseller_username'])) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'reseller_username'"], 422);
+                }
+                $resellerUsername = $_REQUEST['reseller_username'];
+
+                $client = Client::whereHas('hostings', function ($query) use ($resellerUsername) {
+                    $query->where('username', $resellerUsername);
                 })->first();
             }
 
