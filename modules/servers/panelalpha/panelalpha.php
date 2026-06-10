@@ -318,9 +318,11 @@ function panelalpha_CreateAccount(array $params): string
         }
 
         $planId = $service->product->getPanelAlphaPlanId();
+        $plan = $api->getPlan($planId);
+        $servers = $api->getServers($plan['server_group_id'] ?? null);
 
         $instanceLimit = Helper::getInstanceLimit($params);
-        $serverLocation = Helper::getServerLocation($params);
+        $serverLocation = Helper::getServerLocation($params, $servers);
         $hostingAccountConfig = Helper::getHostingAccountConfig($params);
 
         $panelAlphaService = $api->createService($panelAlphaUser['id'], $planId, $instanceLimit, $serverLocation, $hostingAccountConfig);
