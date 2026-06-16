@@ -71,6 +71,8 @@ $_LANG['aa']['product']['server']['config']['key']['php_fpm_pool_settings'] = 'P
 $_LANG['aa']['product']['server']['config']['key']['lsphp_settings'] = 'LiteSpeed Settings';
 $_LANG['aa']['product']['server']['config']['key']['dedicated_ipv4'] = 'Dedicated IPv4';
 $_LANG['aa']['product']['server']['config']['key']['dedicated_ipv6'] = 'Dedicated IPv6';
+$_LANG['aa']['product']['server']['config']['key']['enable_litespeed_cache'] = 'Enable LiteSpeed Cache';
+$_LANG['aa']['product']['server']['config']['key']['redis_config'] = 'Redis Configuration';
 
 $_LANG['aa']['product']['server']['config']['value']['ams'] = 'Amsterdam, NL';
 $_LANG['aa']['product']['server']['config']['value']['bur'] = 'Los Angeles, CA, USA';
