@@ -141,6 +141,7 @@ $_LANG['aa']['button']['generate_configurable_options'] = 'Generate Configurable
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'Log Into Your PanelAlpha';
+$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Unable to log in to PanelAlpha. Please try again later or contact support.';
 
 $_LANG['general']['none'] = 'None';
 
