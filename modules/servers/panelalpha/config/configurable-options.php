@@ -124,6 +124,9 @@ return [
     'php_fpm_pool_settings' => [
         'name' => 'php_fpm_pool_settings|PHP-FPM Pool Settings',
     ],
+    'redis_config' => [
+        'name' => 'redis_config|Redis Configuration',
+    ],
     'lsphp_settings' => [
         'name' => 'lsphp_settings|LiteSpeed Settings',
         'type' => 4,
@@ -131,6 +134,11 @@ return [
     ],
     'enable_redis_cache' => [
         'name' => 'enable_redis_cache|Enabled Redis Cache',
+        'type' => 3,
+        'options' => ['Enable']
+    ],
+    'enable_litespeed_cache' => [
+        'name' => 'enable_litespeed_cache|Enabled Lightspeed Cache',
         'type' => 3,
         'options' => ['Enable']
     ],
