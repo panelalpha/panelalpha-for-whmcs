@@ -71,6 +71,8 @@ $_LANG['aa']['product']['server']['config']['key']['php_fpm_pool_settings'] = 'P
 $_LANG['aa']['product']['server']['config']['key']['lsphp_settings'] = 'LiteSpeed Settings';
 $_LANG['aa']['product']['server']['config']['key']['dedicated_ipv4'] = 'Dedicated IPv4';
 $_LANG['aa']['product']['server']['config']['key']['dedicated_ipv6'] = 'Dedicated IPv6';
+$_LANG['aa']['product']['server']['config']['key']['enable_litespeed_cache'] = 'Enable LiteSpeed Cache';
+$_LANG['aa']['product']['server']['config']['key']['redis_config'] = 'Redis Configuration';
 
 $_LANG['aa']['product']['server']['config']['value']['ams'] = 'Amsterdam, NL';
 $_LANG['aa']['product']['server']['config']['value']['bur'] = 'Los Angeles, CA, USA';
@@ -141,6 +143,7 @@ $_LANG['aa']['button']['generate_configurable_options'] = 'Generate Configurable
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'Log Into Your PanelAlpha';
+$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Unable to log in to PanelAlpha. Please try again later or contact support.';
 
 $_LANG['general']['none'] = 'None';
 

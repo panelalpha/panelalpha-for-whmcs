@@ -47,12 +47,22 @@ add_hook('ClientAreaSecondaryNavbar', 1, function (MenuItem $secondaryNavbar) {
 
         if ($panelAlphaFirstService->configoption5 === 'on') {
             $secondaryNavbar->addChild('panelalpha_sso_link', array(
-                'label' => '<span style="margin-right: 12px; color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' . $MGLANG['ca']['general']['panelalpha']['sso_link'] . ' <i class="fas fa-external-link"></i></span>',
+                'label' => '<span style="color: #5bc0de;" onMouseOver="this.style.textDecoration=\'underline\'"  onMouseOut="this.style.textDecoration=\'none\'">' . $MGLANG['ca']['general']['panelalpha']['sso_link'] . ' <i class="fas fa-external-link"></i></span>',
                 'order' => 1,
                 'uri' => $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $panelAlphaFirstService->id,
             ));
         }
     }
+});
+
+add_hook('ClientAreaHeadOutput', 1, function () {
+    return '
+    <style>
+        #Secondary_Navbar-panelalpha_sso_link {
+            margin-left: 16px;
+            margin-right: 16px;
+        }
+    </style>';
 });
 
 
@@ -194,9 +204,25 @@ add_hook('CustomFieldSave', 1, function ($params) {
         ];
     }
 
-    // get service details from panelalpha
+    // get service details from panelalpha (best-effort backfill; must not block WHMCS save)
     $api = new PanelAlphaApi($service->serverModel->toArray());
-    $panelalphaService = $api->getService($params['value']);
+    try {
+        $panelalphaService = $api->getService((int) $params['value']);
+    } catch (Exception $e) {
+        logModuleCall(
+            'panelalpha',
+            'CustomFieldSave',
+            [
+                'whmcs_service_id' => $service->id,
+                'panelalpha_service_id' => $params['value'],
+            ],
+            $e->getMessage(),
+        );
+
+        return [
+            'value' => $params['value'],
+        ];
+    }
 
     $product = $service->product;
 

@@ -318,9 +318,11 @@ function panelalpha_CreateAccount(array $params): string
         }
 
         $planId = $service->product->getPanelAlphaPlanId();
+        $plan = $api->getPlan($planId);
+        $servers = $api->getServers($plan['server_group_id'] ?? null);
 
         $instanceLimit = Helper::getInstanceLimit($params);
-        $serverLocation = Helper::getServerLocation($params);
+        $serverLocation = Helper::getServerLocation($params, $servers);
         $hostingAccountConfig = Helper::getHostingAccountConfig($params);
 
         $panelAlphaService = $api->createService($panelAlphaUser['id'], $planId, $instanceLimit, $serverLocation, $hostingAccountConfig);
@@ -584,23 +586,36 @@ function panelalpha_TestConnection(array $params): array
  */
 function panelalpha_ClientArea(array $params)
 {
-    if ($_REQUEST['sso'] === 'yes') {
-        $service = Service::find($params['serviceid']);
-
-        $userId = Helper::getCustomField($service->id, 'User ID');
-
-        $api = PanelAlphaApi::fromModel($service->serverModel);
-        $result = $api->getSsoToken($userId);
-
-        header("Location: {$result['url']}/sso-login?token={$result['token']}");
-        exit();
-    }
-
-    global $CONFIG;
-    $url = $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $params['serviceid'];
     try {
+        if (isset($_REQUEST['sso']) && $_REQUEST['sso'] === 'yes') {
+            $LANG = Lang::getLang();
+
+            $service = Service::find($params['serviceid']);
+            if ($service === null) {
+                throw new Exception($LANG['ca']['service']['panelalpha']['sso_error']);
+            }
+
+            $userId = Helper::getCustomField($service->id, 'User ID');
+            if (empty($userId)) {
+                throw new Exception($LANG['ca']['service']['panelalpha']['sso_error']);
+            }
+
+            $api = PanelAlphaApi::fromModel($service->serverModel);
+            $result = $api->getSsoToken((int) $userId);
+
+            if (empty($result['url']) || empty($result['token'])) {
+                throw new Exception($LANG['ca']['service']['panelalpha']['sso_error']);
+            }
+
+            header("Location: {$result['url']}/sso-login?token={$result['token']}");
+            exit();
+        }
+
+        global $CONFIG;
+        $url = $CONFIG['SystemURL'] . '/clientarea.php?action=productdetails&sso=yes&id=' . $params['serviceid'];
+
         return [
-            'tabOverviewModuleOutputTemplate' => 'templates/clientarea.tpl',
+            'tabOverviewModuleOutputTemplate' => 'resources/templates/clientarea.tpl',
             'templateVariables' => [
                 'url' => $url,
                 'MGLANG' => Lang::getLang()
@@ -608,7 +623,7 @@ function panelalpha_ClientArea(array $params)
         ];
     } catch (Exception $e) {
         return [
-            'tabOverviewReplacementTemplate' => 'error.tpl',
+            'tabOverviewReplacementTemplate' => 'resources/templates/error.tpl',
             'templateVariables' => [
                 'usefulErrorHelper' => $e->getMessage(),
             ],
@@ -690,10 +705,10 @@ function panelalpha_AdminServicesTabFields($params): array
             $server = $service->serverModel;
             $userId = Helper::getCustomField($service->id, 'User ID');
             $accountId = (int)$_REQUEST['account_id'];
-            
+
             $api = PanelAlphaApi::fromModel($server);
             $result = $api->getControlPanelSsoUrl($accountId, $userId);
-            
+
             if (!empty($result['url'])) {
                 header("Location: {$result['url']}");
                 exit();
@@ -704,23 +719,23 @@ function panelalpha_AdminServicesTabFields($params): array
     }
 
     $LANG = Lang::getLang();
-    
+
     try {
         $service = Service::find($params['serviceid']);
         $server = $service->serverModel;
         $panelAlphaServiceId = Helper::getCustomField($service->id, 'Service ID');
-        
+
         if (!$panelAlphaServiceId) {
             return [
-                $LANG['aa']['service']['panelalpha']['sso'] => 
-                    '<a class="btn btn-default" onclick="window.open(window.location + \'&sso=yes\', \'_blank\')">' . 
+                $LANG['aa']['service']['panelalpha']['sso'] =>
+                    '<a class="btn btn-default" onclick="window.open(window.location + \'&sso=yes\', \'_blank\')">' .
                     $LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] . '</a>'
             ];
         }
-        
+
         $api = PanelAlphaApi::fromModel($server);
         $panelAlphaService = $api->getService($panelAlphaServiceId);
-        
+
         // Get server type from plan
         $serverType = $panelAlphaService['plan']['server_type'] ?? null;
         $supportedTypes = ['cpanel', 'directadmin', 'plesk'];
@@ -730,12 +745,12 @@ function panelalpha_AdminServicesTabFields($params): array
         $serverAccounts = [];
         $showHostingSSO = false;
     }
-    
+
     $view = new Smarty();
     $view->assign('LANG', $LANG);
     $view->assign('serverAccountsJson', json_encode($serverAccounts));
     $view->assign('showHostingSSO', $showHostingSSO);
-    
+
     return [
         $LANG['aa']['service']['panelalpha']['sso'] => $view->fetch('admin-sso-buttons.tpl')
     ];

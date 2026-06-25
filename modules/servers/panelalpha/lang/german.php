@@ -53,6 +53,8 @@ $_LANG['aa']['product']['server']['config']['key']['reseller_plan'] = 'Reseller-
 $_LANG['aa']['product']['server']['config']['key']['disk_space_limit'] = 'Festplattenspeicher-Limit';
 $_LANG['aa']['product']['server']['config']['key']['memory_limit'] = 'Speicher-Limit';
 $_LANG['aa']['product']['server']['config']['key']['enable_redis_cache'] = 'Redis Cache';
+$_LANG['aa']['product']['server']['config']['key']['enable_litespeed_cache'] = 'LiteSpeed Cache aktivieren';
+$_LANG['aa']['product']['server']['config']['key']['redis_config'] = 'Redis-Konfiguration';
 $_LANG['aa']['product']['server']['config']['key']['cpu_limit'] = 'CPU-Limit';
 $_LANG['aa']['product']['server']['config']['key']['location'] = 'Standort';
 $_LANG['aa']['product']['server']['config']['key']['server_location'] = 'Standort';
@@ -127,6 +129,7 @@ $_LANG['aa']['button']['generate_configurable_options'] = 'Konfigurierbare Optio
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress-Verwaltung';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'In Ihr PanelAlpha einloggen';
+$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Anmeldung bei PanelAlpha nicht möglich. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.';
 
 $_LANG['general']['none'] = 'Keine';
 

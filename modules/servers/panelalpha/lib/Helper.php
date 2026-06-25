@@ -14,6 +14,46 @@ class Helper
         'sites',
     ];
 
+    private static array $hostingAccountConfigExcludedKeys = [
+        'Service ID',
+        'User ID',
+        'Instance Name',
+        'server_location',
+        'sites',
+        'location',
+        'Location',
+    ];
+
+    /**
+     * Maps checkout location labels to hostname geo tokens (e.g. cp11.ams1 → amsterdam).
+     *
+     * @var array<string, list<string>>
+     */
+    private static array $locationLabelKeywords = [
+        'frankfurt' => ['fra'],
+        'amsterdam' => ['ams'],
+        'warsaw' => ['waw'],
+        'los angeles' => ['lax'],
+        'toronto' => ['tor'],
+        'singapore' => ['sgp'],
+        'new york' => ['nyc'],
+        'dubai' => ['dxb'],
+        'sydney' => ['syd'],
+        'sao paulo' => ['bra'],
+        'são paulo' => ['bra'],
+        'zurich' => ['zrh'],
+        'seoul' => ['sel'],
+        'madrid' => ['mad'],
+        'johannesburg' => ['jnb'],
+        'istanbul' => ['ist'],
+        'london' => ['lon', 'lhr'],
+        'dallas' => ['dfw', 'dal'],
+        'mumbai' => ['bom', 'mum'],
+        'tokyo' => ['tyo', 'nrt'],
+        'riyadh' => ['ruh'],
+        'oslo' => ['osl'],
+    ];
+
     /**
      *  @param int $length 
      */
@@ -77,7 +117,10 @@ class Helper
         $value = CustomField::join('tblcustomfieldsvalues', 'tblcustomfieldsvalues.fieldid', '=', 'tblcustomfields.id')
             ->where('tblcustomfieldsvalues.relid', $serviceId)
             ->where('tblcustomfields.type', 'product')
-            ->where('tblcustomfields.fieldname', $fieldName)
+            ->where(function ($query) use ($fieldName) {
+                $query->where('tblcustomfields.fieldname', $fieldName);
+                $query->orWhere('tblcustomfields.fieldname', 'like', $fieldName . '|%');
+            })
             ->value('value');
 
         if (empty($value)) {
@@ -261,10 +304,149 @@ class Helper
         return $instanceLimit ? (int)$instanceLimit : null;
     }
 
-    public static function getServerLocation(array $params): ?int
+    public static function parseServerLocationValue(mixed $value): ?int
     {
-        $serverLocation = $params['configoptions']['server_location'] ?? $params['customfields']['server_location'] ?? null;
-        return $serverLocation ? (int)$serverLocation : null;
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $parts = explode('|', (string) $value, 2);
+        $candidate = trim($parts[0]);
+
+        if ($candidate === '' || !ctype_digit($candidate)) {
+            return null;
+        }
+
+        $id = (int) $candidate;
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function getServerLocationCandidateValues(array $params): array
+    {
+        $candidates = [];
+        $sources = [
+            $params['configoptions'] ?? [],
+            $params['customfields'] ?? [],
+        ];
+        $keys = ['server_location', 'location', 'Location'];
+
+        foreach ($sources as $source) {
+            foreach ($keys as $key) {
+                if (!empty($source[$key])) {
+                    $candidates[] = (string) $source[$key];
+                }
+            }
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * @param array<int, array{id?: int, name?: string}> $servers
+     */
+    public static function resolveServerLocationFromLabel(string $label, array $servers): ?int
+    {
+        $label = trim($label);
+        if ($label === '') {
+            return null;
+        }
+
+        $parsed = self::parseServerLocationValue($label);
+        if ($parsed !== null) {
+            return $parsed;
+        }
+
+        $searchTexts = array_unique(array_filter(array_map(
+            static fn (string $text) => strtolower(trim($text)),
+            [$label, ...explode('|', $label)]
+        )));
+
+        foreach ($servers as $server) {
+            $serverId = (int) ($server['id'] ?? 0);
+            $serverName = strtolower((string) ($server['name'] ?? ''));
+            if ($serverId <= 0 || $serverName === '') {
+                continue;
+            }
+
+            foreach ($searchTexts as $text) {
+                if ($text === '') {
+                    continue;
+                }
+
+                if (str_contains($serverName, $text) || str_contains($text, $serverName)) {
+                    return $serverId;
+                }
+            }
+        }
+
+        foreach ($servers as $server) {
+            $serverId = (int) ($server['id'] ?? 0);
+            $serverName = strtolower((string) ($server['name'] ?? ''));
+            if ($serverId <= 0 || $serverName === '') {
+                continue;
+            }
+
+            foreach (self::$locationLabelKeywords as $keyword => $patterns) {
+                $keywordFound = false;
+                foreach ($searchTexts as $text) {
+                    if (str_contains($text, $keyword)) {
+                        $keywordFound = true;
+                        break;
+                    }
+                }
+
+                if (!$keywordFound) {
+                    continue;
+                }
+
+                foreach ($patterns as $pattern) {
+                    if (str_contains($serverName, $pattern)) {
+                        return $serverId;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<int, array{id?: int, name?: string}>|null $servers
+     */
+    public static function getServerLocation(array $params, ?array $servers = null): ?int
+    {
+        foreach (self::getServerLocationCandidateValues($params) as $value) {
+            $parsed = self::parseServerLocationValue($value);
+            if ($parsed !== null) {
+                return $parsed;
+            }
+        }
+
+        if ($servers === null) {
+            return null;
+        }
+
+        foreach (self::getServerLocationCandidateValues($params) as $value) {
+            $resolved = self::resolveServerLocationFromLabel($value, $servers);
+            if ($resolved !== null) {
+                return $resolved;
+            }
+        }
+
+        return null;
+    }
+
+    public static function normalizeConfigurableOptionValue(mixed $value): mixed
+    {
+        if (!is_string($value) || !str_contains($value, '|')) {
+            return $value;
+        }
+
+        return explode('|', $value, 2)[0];
     }
 
     public static function getHostingAccountConfig(array $params): array
@@ -280,8 +462,22 @@ class Helper
             ...$params['configoptions'],
         ];
 
-        return array_filter($config, function ($value, $key)  {
-            return !in_array($key, ['Service ID', 'User ID', 'Instance Name', 'server_location', 'sites']);
-        }, ARRAY_FILTER_USE_BOTH);
+        $locationValue = $config['location'] ?? $config['Location'] ?? null;
+        if ($locationValue !== null && self::parseServerLocationValue($locationValue) === null) {
+            $geoAffinity = self::normalizeConfigurableOptionValue($locationValue);
+            if (is_string($geoAffinity) && preg_match('/^[a-z]{3}$/i', $geoAffinity)) {
+                $config['geo_affinity'] = $geoAffinity;
+            }
+        }
+
+        $filtered = array_filter(
+            $config,
+            static function ($value, $key) {
+                return !in_array($key, self::$hostingAccountConfigExcludedKeys, true);
+            },
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        return array_map([self::class, 'normalizeConfigurableOptionValue'], $filtered);
     }
 }
