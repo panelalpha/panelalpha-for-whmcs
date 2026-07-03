@@ -18,8 +18,15 @@ class Lang
 
         require $languageDir . $languageFile . '.php';
 
-        self::loadOverrideFile(self::getGlobalOverridePath($languageFile));
-        self::loadOverrideFile($languageDir . 'overrides/' . $languageFile . '.php');
+        $globalOverridePath = self::getGlobalOverridePath($languageFile);
+        if ($globalOverridePath !== '' && file_exists($globalOverridePath)) {
+            require $globalOverridePath;
+        }
+
+        $moduleOverridePath = $languageDir . 'overrides/' . $languageFile . '.php';
+        if (file_exists($moduleOverridePath)) {
+            require $moduleOverridePath;
+        }
 
         return $_LANG ?? [];
     }
@@ -31,12 +38,5 @@ class Lang
         }
 
         return ROOTDIR . '/lang/overrides/' . $languageFile . '.php';
-    }
-
-    private static function loadOverrideFile(string $path): void
-    {
-        if ($path !== '' && file_exists($path)) {
-            require $path;
-        }
     }
 }
