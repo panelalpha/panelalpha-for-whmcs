@@ -142,8 +142,8 @@ $_LANG['aa']['service']['panelalpha']['no_hosting_accounts'] = 'No hosting accou
 $_LANG['aa']['button']['generate_configurable_options'] = 'Generate Configurable Options';
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
-$_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'Log Into Your PanelAlpha';
-$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Unable to log in to PanelAlpha. Please try again later or contact support.';
+$_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'WordPress Management';
+$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Unable to log in to the control panel. Please try again later or contact support.';
 
 $_LANG['general']['none'] = 'None';
 
