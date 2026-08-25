@@ -128,8 +128,8 @@ $_LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] = 'Als Benu
 $_LANG['aa']['button']['generate_configurable_options'] = 'Konfigurierbare Optionen generieren';
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress-Verwaltung';
-$_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'In Ihr PanelAlpha einloggen';
-$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Anmeldung bei PanelAlpha nicht möglich. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.';
+$_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'WordPress-Verwaltung';
+$_LANG['ca']['service']['panelalpha']['sso_error'] = 'Anmeldung am Control Panel nicht möglich. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.';
 
 $_LANG['general']['none'] = 'Keine';
 
