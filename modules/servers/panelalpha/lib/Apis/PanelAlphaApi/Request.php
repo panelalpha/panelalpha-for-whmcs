@@ -4,9 +4,15 @@ namespace WHMCS\Module\Server\PanelAlpha\Apis\PanelAlphaApi;
 
 use WHMCS\Module\Server\PanelAlpha\Curl;
 
+/**
+ * Sends HTTP requests to the PanelAlpha API and logs them with secrets redacted.
+ */
 class Request
 {
+    /** Port used when the server has no port set. */
     public const DEFAULT_PORT = '8443';
+
+    /** Body and query keys whose values are never written to the module log. */
     private const SENSITIVE_KEYS = [
         'password',
         'user_password',
@@ -15,19 +21,36 @@ class Request
         'access_hash',
     ];
 
+    /** Actions whose response "url" is a one-time login link and must not be logged. */
+    private const SSO_URL_REDACT_ACTIONS = [
+        'getControlPanelSsoUrl',
+        'getSsoToken',
+        'getLoginAsUserSsoToken',
+    ];
+
+    /** @var Curl */
     public $curl;
 
+    /** @var string URL scheme, for example "https", or an empty string. */
     protected $protocol;
+
+    /** @var string */
     protected $hostname;
+
+    /** @var string */
     protected $port;
 
+    /** @var bool Whether to verify the SSL certificate. */
     protected $secureMode;
+
+    /** @var string|null API token sent as a Bearer token. */
     protected $token;
 
+    /** @var string|null Name of the API action, used as the module log action. */
     protected $action;
 
     /**
-     * @param array $params
+     * @param array $params WHMCS module params (server*) or a tblservers row.
      */
     public function __construct(array $params)
     {
@@ -40,6 +63,8 @@ class Request
     }
 
     /**
+     * Set the action name used in the module log for the next requests.
+     *
      * @param string $action
      * @return void
      */
@@ -54,7 +79,7 @@ class Request
      */
     protected function makeProtocol(array $params): string
     {
-        return $params['serverhttpprefix'] ?? "";
+        return $params['serverhttpprefix'] ?? '';
     }
 
     /**
@@ -95,13 +120,13 @@ class Request
             return in_array($params['secure'], ['on', 1, '1', true], true);
         }
 
-        // Default to verifying certificates unless explicitly disabled.
+        // Verify certificates unless the server explicitly turns it off.
         return true;
     }
 
     /**
      * @param array $params
-     * @return mixed
+     * @return string|null
      */
     protected function makeToken(array $params)
     {
@@ -109,51 +134,120 @@ class Request
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
+     * Call the admin API and return the "data" part of the response.
+     *
+     * @param string $method HTTP method.
+     * @param string $endpoint Path below /api/admin/, with query string if needed.
      * @param array $body
      * @return array|null
      * @throws \Exception
      */
     public function call(string $method, string $endpoint, array $body = []): ?array
     {
-        $url = $this->createUri() . '/api/admin/' . $endpoint;
+        return $this->parseResponse($this->send($method, $endpoint, $body));
+    }
+
+    /**
+     * Call the admin API and return the full decoded response, used for paginated lists.
+     *
+     * @param string $method HTTP method.
+     * @param string $endpoint Path below /api/admin/, with query string if needed.
+     * @param array $body
+     * @return array|null Full decoded JSON body, including "meta".
+     * @throws \Exception
+     */
+    public function callListResponse(string $method, string $endpoint, array $body = []): ?array
+    {
+        $result = json_decode($this->send($method, $endpoint, $body), true);
+
+        return is_array($result) ? $result : null;
+    }
+
+    /**
+     * Call the user API, optionally acting as a given PanelAlpha user.
+     *
+     * @param string $method HTTP method.
+     * @param string $endpoint Path below /api/.
+     * @param array $body
+     * @param int|null $userId PanelAlpha user ID sent in the X-PanelAlpha-User header.
+     * @return array|null
+     * @throws \Exception
+     */
+    public function callUserApi(string $method, string $endpoint, array $body = [], ?int $userId = null): ?array
+    {
+        $url = $this->createUri() . '/api/' . $endpoint;
         $options = $this->createOptions();
+
+        if ($userId !== null) {
+            $options[CURLOPT_HTTPHEADER][] = 'X-PanelAlpha-User: ' . $userId;
+        }
+
+        return $this->parseResponse($this->execute($method, $url, $body, $options));
+    }
+
+    /**
+     * Send a request to the admin API.
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param array $body
+     * @return string Raw response body.
+     * @throws \Exception
+     */
+    private function send(string $method, string $endpoint, array $body): string
+    {
+        $url = $this->createUri() . '/api/admin/' . $endpoint;
+
+        return $this->execute($method, $url, $body, $this->createOptions());
+    }
+
+    /**
+     * Send the request, log it and fail on a non-2xx response.
+     *
+     * @param string $method
+     * @param string $url Full URL.
+     * @param array $body
+     * @param array $options Extra cURL options.
+     * @return string Raw response body.
+     * @throws \Exception
+     */
+    private function execute(string $method, string $url, array $body, array $options): string
+    {
         $this->setSecureMode();
 
         try {
             $response = $this->curl->call($method, $url, $body, $options);
             $this->log();
             $this->processResponse();
-
         } catch (\Exception $e) {
+            // Callers get a plain \Exception that carries only the message.
             throw new \Exception($e->getMessage());
         }
-        return $this->parseResponse($response);
+
+        return $response;
     }
 
     /**
-     * @return string
+     * @return string Base URL: [protocol://]hostname:port
      */
     protected function createUri(): string
     {
         if ($this->protocol) {
-            return $this->protocol . "://" . $this->hostname . ":" . $this->port;
+            return $this->protocol . '://' . $this->hostname . ':' . $this->port;
         }
-        return $this->hostname . ":" . $this->port;
+        return $this->hostname . ':' . $this->port;
     }
 
-
     /**
-     * @return array[]
+     * @return array cURL options with the JSON and authorization headers.
      */
     protected function createOptions(): array
     {
         return [
             CURLOPT_HTTPHEADER => [
-                "Content-Type: application/json",
-                "Authorization: Bearer " . $this->token
-            ]
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $this->token,
+            ],
         ];
     }
 
@@ -162,11 +256,13 @@ class Request
      */
     protected function setSecureMode(): void
     {
-        // Allow disabling verification (e.g. self-signed certs) via the server "Secure" toggle.
+        // The server "Secure" toggle can turn verification off, for example for self-signed certificates.
         $this->curl->verifySsl($this->secureMode);
     }
 
     /**
+     * Write the last call to the WHMCS module log with secrets redacted.
+     *
      * @return void
      */
     protected function log(): void
@@ -182,8 +278,10 @@ class Request
     }
 
     /**
+     * Throw when the last response has a non-2xx status code.
+     *
      * @return void
-     * @throws \Exception
+     * @throws \Exception With the API error message when the response has one.
      */
     protected function processResponse(): void
     {
@@ -191,51 +289,21 @@ class Request
             throw new \Exception('Unauthenticated');
         }
 
-        if ($this->curl->getLastHttpCode() < 200 || $this->curl->getLastHttpCode() > 299) {
-            $message  = $this->curl->getLastCall()['response'] ?? null;
-            if ($message !== null) {
-                $message = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+        $httpCode = $this->curl->getLastHttpCode();
+        if ($httpCode < 200 || $httpCode > 299) {
+            // Error pages from a proxy (e.g. an HTML 502) are not JSON.
+            $body = json_decode((string) ($this->curl->getLastCall()['response'] ?? ''), true);
+            if (is_array($body) && isset($body['message'])) {
+                throw new \Exception($body['message']);
             }
-            if (is_array($message) && isset($message['message'])) {
-                throw new \Exception($message['message']);
-            }
-            throw new \Exception('Request failed');
+            throw new \Exception('Request failed (HTTP ' . $httpCode . ')');
         }
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param array $body
-     * @param int|null $userId
-     * @return array|null
-     * @throws \Exception
-     */
-    public function callUserApi(string $method, string $endpoint, array $body = [], ?int $userId = null): ?array
-    {
-        $url = $this->createUri() . '/api/' . $endpoint;
-        $options = $this->createOptions();
-        
-        // Add X-PanelAlpha-User header if userId is provided
-        if ($userId !== null) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-PanelAlpha-User: ' . $userId;
-        }
-        
-        $this->setSecureMode();
-
-        try {
-            $response = $this->curl->call($method, $url, $body, $options);
-            $this->log();
-            $this->processResponse();
-
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
-        }
-        return $this->parseResponse($response);
-    }
-
-    /**
-     * @param array $lastCall
+     * Redact secrets in all parts of a call before it is logged.
+     *
+     * @param array $lastCall Call details from Curl::getLastCall().
      * @return array
      */
     protected function sanitizeLastCall(array $lastCall): array
@@ -249,7 +317,7 @@ class Request
     }
 
     /**
-     * Redact sensitive headers before logging.
+     * Redact the token, the acting user and sensitive key/value pairs in raw text.
      *
      * @param string $payload
      * @return string
@@ -258,13 +326,12 @@ class Request
     {
         $payload = preg_replace('/Authorization:\\s*Bearer\\s+[^\\r\\n]+/i', 'Authorization: Bearer [redacted]', $payload);
         $payload = preg_replace('/X-PanelAlpha-User:\\s*[^\\r\\n]+/i', 'X-PanelAlpha-User: [redacted]', $payload);
-        $payload = $this->redactKeyValueStrings($payload);
 
-        return $payload;
+        return $this->redactKeyValueStrings($payload);
     }
 
     /**
-     * Remove secrets from request/response bodies.
+     * Redact secrets in a request or response body (JSON, query string or plain text).
      *
      * @param string|null $payload
      * @return string
@@ -289,10 +356,10 @@ class Request
     }
 
     /**
-     * Redact secrets from JSON payloads.
+     * Redact secrets in a JSON body.
      *
      * @param string $payload
-     * @return string|null
+     * @return string|null Null when the payload is not a JSON object or array.
      */
     protected function redactJsonPayload(string $payload): ?string
     {
@@ -307,10 +374,10 @@ class Request
     }
 
     /**
-     * Redact secrets from query string payloads.
+     * Redact secrets in a query string body.
      *
      * @param string $payload
-     * @return string|null
+     * @return string|null Null when the payload is not a query string.
      */
     protected function redactQueryString(string $payload): ?string
     {
@@ -330,9 +397,9 @@ class Request
     }
 
     /**
-     * Redact nested array values using the sensitive keys list.
+     * Replace values of sensitive keys, at any depth, with "[redacted]".
      *
-     * @param array $payload
+     * @param array $payload Changed in place.
      * @return void
      */
     protected function redactArrayValues(array &$payload): void
@@ -343,14 +410,29 @@ class Request
                 continue;
             }
 
-            if (in_array(strtolower((string)$key), self::SENSITIVE_KEYS, true)) {
+            if (in_array(strtolower((string) $key), self::SENSITIVE_KEYS, true)) {
+                $value = '[redacted]';
+                continue;
+            }
+
+            if ($this->shouldRedactSsoUrl() && strtolower((string) $key) === 'url') {
                 $value = '[redacted]';
             }
         }
     }
 
     /**
-     * Redact key/value pairs when payload parsing is not possible.
+     * @return bool True when the current action returns a one-time login URL.
+     */
+    protected function shouldRedactSsoUrl(): bool
+    {
+        return in_array($this->action, self::SSO_URL_REDACT_ACTIONS, true);
+    }
+
+    /**
+     * Redact sensitive key/value pairs in text that could not be parsed.
+     *
+     * Covers JSON-like "key": value pairs and key=value query pairs.
      *
      * @param string $payload
      * @return string
@@ -368,17 +450,17 @@ class Request
             $payload
         );
 
-        $payload = preg_replace(
+        return preg_replace(
             '/((?:\\?|&|;|^)(?:' . $sensitivePattern . ')=)([^&;\\s]+)/i',
             '$1[redacted]',
             $payload
         );
-
-        return $payload;
     }
 
     /**
-     * @param string $response
+     * Return the "data" part of a JSON response.
+     *
+     * @param string $response Raw response body.
      * @return array|null
      */
     protected function parseResponse(string $response): ?array
@@ -386,5 +468,4 @@ class Request
         $result = json_decode($response, true);
         return $result['data'] ?? null;
     }
-
 }

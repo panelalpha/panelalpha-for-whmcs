@@ -4,6 +4,9 @@ namespace WHMCS\Module\Addon\PanelAlpha\Models\DnsManager;
 
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
+/**
+ * Global setting of the DNS Manager addon (DNSManager3_GlobalSetting).
+ */
 class GlobalSetting extends EloquentModel
 {
     /** @var string */
@@ -12,15 +15,22 @@ class GlobalSetting extends EloquentModel
     /** @var bool */
     public $timestamps = false;
 
-    /** @var array */
+    /** @var array<int, string> */
     protected $guarded = ['id'];
 
-    /** @var array */
+    /** @var array<int, string> */
     protected $fillable = ['key', 'value'];
 
     /** @var bool */
     protected $softDelete = false;
 
+    /**
+     * Returns the value of a DNS Manager global setting.
+     *
+     * @param string $key Setting key.
+     * @return string|null
+     * @throws \Exception When the setting does not exist.
+     */
     public static function get($key)
     {
         /** @var GlobalSetting|null $setting */

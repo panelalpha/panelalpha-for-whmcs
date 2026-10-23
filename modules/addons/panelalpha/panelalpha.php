@@ -1,13 +1,21 @@
 <?php
 
-use WHMCS\Module\Addon\PanelAlpha\Helper;
+/**
+ * PanelAlpha addon module: configuration and admin area output.
+ */
+
 use WHMCS\Database\Capsule;
+use WHMCS\Module\Addon\PanelAlpha\Helper;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
-
+/**
+ * Returns the addon configuration. Generates an API token on first use.
+ *
+ * @return array<string, mixed>
+ */
 function panelalpha_config()
 {
     $config = Helper::config();
@@ -21,13 +29,15 @@ function panelalpha_config()
         if (!confirm('Are you sure to generate new API token? The current token will be invalidated.')) {
             return;
         }
+        const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const charactersLength = characters.length;
+        const randomValues = new Uint8Array(length);
+        crypto.getRandomValues(randomValues);
         let token = '';
-        let characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let charactersLength = characters.length;
-        for ( let i = 0; i < length; i++ ) {
-            token += characters.charAt(Math.floor(Math.random() * charactersLength));
+        for (let i = 0; i < length; i++) {
+            token += characters.charAt(randomValues[i] % charactersLength);
         }
-        $("input[name='fields[panelalpha][api_token]'").val(token);
+        $("input[name='fields[panelalpha][api_token]']").val(token);
     }
 </script>
 <button type="button" onclick="paGenerateApiToken();" class="btn btn-default btn-xs">Generate new API token</button>
@@ -37,7 +47,7 @@ HTML;
         'name' => 'PanelAlpha WordPress Hosting For WHMCS',
         'description' => 'PanelAlpha WordPress Hosting For WHMCS will let you complete all essential tasks in the provisioning and management of WordPress websites without leaving your WHMCS system.',
         'author' => 'PanelAlpha',
-        'version' => 'v1.6.4',
+        'version' => '1.7.0',
         'fields' => [
             'api_token' => [
                 'FriendlyName' => 'API Token',
@@ -57,6 +67,12 @@ HTML;
     ];
 }
 
+/**
+ * Prints the list of PanelAlpha services in the addon admin page.
+ *
+ * @param array<string, mixed> $vars Addon parameters passed by WHMCS (not used).
+ * @return void
+ */
 function panelalpha_output($vars)
 {
     $services = Capsule::table('tblhosting')
@@ -98,25 +114,25 @@ function panelalpha_output($vars)
         }
         $clientLink = 'clientssummary.php?userid=' . $service->userid;
         $serviceLink = 'clientsservices.php?userid=' . $service->userid . '&id=' . $service->id;
-        
-        $statusColor = '#000';
-        if ($service->domainstatus == 'Active') $statusColor = '#46a546';
-        elseif ($service->domainstatus == 'Pending') $statusColor = '#f0ad4e';
-        elseif ($service->domainstatus == 'Suspended') $statusColor = '#9d261d';
-        elseif ($service->domainstatus == 'Terminated') $statusColor = '#9d261d';
-        elseif ($service->domainstatus == 'Cancelled') $statusColor = '#999';
-        elseif ($service->domainstatus == 'Fraud') $statusColor = '#000';
+
+        $statusColor = match ($service->domainstatus) {
+            'Active' => '#46a546',
+            'Pending' => '#f0ad4e',
+            'Suspended', 'Terminated' => '#9d261d',
+            'Cancelled' => '#999',
+            default => '#000',
+        };
 
         echo '<tr>';
-        echo '<td><a href="' . $serviceLink . '">' . $service->id . '</a></td>';
-        echo '<td><a href="' . $clientLink . '">' . $clientName . '</a></td>';
-        echo '<td><a href="' . $serviceLink . '">' . $service->productname . '</a></td>';
-        echo '<td><a href="http://' . $service->domain . '" target="_blank">' . $service->domain . '</a></td>';
-        echo '<td><span class="label" style="background-color:'.$statusColor.'; color:#fff;">' . $service->domainstatus . '</span></td>';
+        echo '<td><a href="' . htmlspecialchars($serviceLink, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars((string) $service->id, ENT_QUOTES, 'UTF-8') . '</a></td>';
+        echo '<td><a href="' . htmlspecialchars($clientLink, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($clientName, ENT_QUOTES, 'UTF-8') . '</a></td>';
+        echo '<td><a href="' . htmlspecialchars($serviceLink, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($service->productname, ENT_QUOTES, 'UTF-8') . '</a></td>';
+        echo '<td><a href="' . htmlspecialchars('http://' . $service->domain, ENT_QUOTES, 'UTF-8') . '" target="_blank">' . htmlspecialchars($service->domain, ENT_QUOTES, 'UTF-8') . '</a></td>';
+        echo '<td><span class="label" style="background-color:' . $statusColor . '; color:#fff;">' . htmlspecialchars($service->domainstatus, ENT_QUOTES, 'UTF-8') . '</span></td>';
         echo '</tr>';
     }
 
-    if ($count == 0) {
+    if ($count === 0) {
         echo '<tr><td colspan="5" class="text-center">No services found</td></tr>';
     }
 

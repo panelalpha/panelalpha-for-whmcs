@@ -7,13 +7,26 @@ use WHMCS\Module\Server\PanelAlpha\Models\CustomField;
 use WHMCS\Module\Server\PanelAlpha\Models\CustomFieldValue;
 use WHMCS\Module\Server\PanelAlpha\Models\ServerGroup;
 
+/**
+ * Shared helpers for the PanelAlpha server module.
+ */
 class Helper
 {
+    /**
+     * Configurable options every PanelAlpha product can have.
+     *
+     * @var string[]
+     */
     public static array $defaultConfigurableOptions = [
         'server_location',
         'sites',
     ];
 
+    /**
+     * Keys that are not sent to PanelAlpha as hosting account config.
+     *
+     * @var string[]
+     */
     private static array $hostingAccountConfigExcludedKeys = [
         'Service ID',
         'User ID',
@@ -55,7 +68,12 @@ class Helper
     ];
 
     /**
-     *  @param int $length 
+     * Generate a random password with at least one lowercase letter, uppercase letter,
+     * digit and special character.
+     *
+     * @param int $length Password length, at least 4.
+     * @return string
+     * @throws Exception When no secure random source is available.
      */
     public static function generateSecurePassword(int $length = 16): string
     {
@@ -79,12 +97,16 @@ class Helper
     }
 
     /**
-     * @param $productId
-     * @param $serviceId
-     * @param $fieldName
-     * @param $fieldValue
+     * Save a product custom field value for a service.
+     *
+     * The field name may also match "Name|Friendly label" style field names.
+     *
+     * @param int|string $productId
+     * @param int|string $serviceId
+     * @param string $fieldName
+     * @param mixed $fieldValue
      * @return void
-     * @throws Exception
+     * @throws Exception When the product has no such custom field.
      */
     public static function setServiceCustomFieldValue($productId, $serviceId, $fieldName, $fieldValue)
     {
@@ -108,9 +130,13 @@ class Helper
     }
 
     /**
+     * Get a product custom field value of a service.
+     *
+     * For "value|label" values only the part before the pipe is returned.
+     *
      * @param int|null $serviceId
      * @param string $fieldName
-     * @return mixed|null
+     * @return string|null Null when the value is empty.
      */
     public static function getCustomField(?int $serviceId, string $fieldName)
     {
@@ -132,11 +158,13 @@ class Helper
     }
 
     /**
+     * Save an addon custom field value.
+     *
      * @param int $addonId
      * @param string $fieldName
      * @param string $fieldValue
      * @return void
-     * @throws Exception
+     * @throws Exception When the addon has no such custom field.
      */
     public static function setAddonCustomFieldValue(int $addonId, string $fieldName, string $fieldValue)
     {
@@ -159,6 +187,11 @@ class Helper
         ]);
     }
 
+    /**
+     * Whether any server group contains a PanelAlpha server.
+     *
+     * @return bool
+     */
     public static function isServerGroupWithPanelAlphaServer(): bool
     {
         $serverGroups = ServerGroup::get();
@@ -172,12 +205,17 @@ class Helper
         return false;
     }
 
+    /**
+     * Render the WHMCS 404 page and stop the request.
+     *
+     * @return void
+     */
     public static function showPageNotFound(): void
     {
-        gracefulCoreRequiredFileInclude("/includes/clientareafunctions.php");
+        gracefulCoreRequiredFileInclude('/includes/clientareafunctions.php');
         $response = new \WHMCS\ClientArea();
-        $response->setPageTitle("404 - Page Not Found");
-        $response->setTemplate("error/page-not-found");
+        $response->setPageTitle('404 - Page Not Found');
+        $response->setTemplate('error/page-not-found');
         $response->skipMainBodyContainer();
         $response = $response->withStatus(404);
         (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
@@ -185,8 +223,10 @@ class Helper
     }
 
     /**
-     * @param array $params
-     * @return string
+     * Get the instance name from the "Instance Name" custom field, or the product default.
+     *
+     * @param array<string, mixed> $params WHMCS module parameters.
+     * @return string Empty string when neither is set.
      */
     public static function getInstanceName(array $params): string
     {
@@ -200,11 +240,13 @@ class Helper
             return $instanceName;
         }
 
-        return "";
+        return '';
     }
 
     /**
-     * @return string|null
+     * Read the module version from whmcs.json.
+     *
+     * @return string|null Null when the file does not exist.
      */
     public static function getVersion(): ?string
     {
@@ -219,6 +261,17 @@ class Helper
         return $info['version'];
     }
 
+    /**
+     * Add hosting account config and allowed configurable options to each plan.
+     *
+     * Plans with "account_config_fields" use their field list. Older plans fall back
+     * to the keys known in config/configurable-options.php.
+     *
+     * @param array<int, array<string, mixed>> $plans PanelAlpha plans from the API.
+     * @return array<int, array<string, mixed>>
+     * @throws \JsonException
+     * @throws Exception When the config file cannot be read.
+     */
     public static function getFormattedPlans(array $plans): array
     {
         return array_map(static function (array $plan) {
@@ -246,7 +299,7 @@ class Helper
                         $type = 'text';
                         if ($config['type'] === 1) {
                             $type = 'select';
-                        } else if ($config['type'] === 3) {
+                        } elseif ($config['type'] === 3) {
                             $type = 'checkbox';
                         }
 
@@ -278,6 +331,16 @@ class Helper
         }, $plans);
     }
 
+    /**
+     * Read a value from a module config file using "file.key" notation.
+     *
+     * Example: getConfig('configurable-options.sites') reads key "sites" from
+     * config/configurable-options.php.
+     *
+     * @param string $key
+     * @return array|string|null Null when the key does not exist.
+     * @throws Exception When the key format is wrong or the file does not exist.
+     */
     public static function getConfig(string $key): array|string|null
     {
         $configParts = explode('.', $key, 2);
@@ -285,7 +348,7 @@ class Helper
         $configKey = $configParts[1];
 
         if (empty($filename) || empty($configKey)) {
-            throw new Exception("Invalid config key format. Both filename and key must be provided.");
+            throw new Exception('Invalid config key format. Both filename and key must be provided.');
         }
 
         $configFile = dirname(__DIR__) . "/config/{$filename}.php";
@@ -298,12 +361,24 @@ class Helper
         return $configData[$configKey] ?? null;
     }
 
+    /**
+     * Get the number of sites from the "sites" configurable option or custom field.
+     *
+     * @param array<string, mixed> $params WHMCS module parameters.
+     * @return int|null
+     */
     public static function getInstanceLimit(array $params): ?int
     {
         $instanceLimit = $params['configoptions']['sites'] ?? $params['customfields']['sites'] ?? null;
         return $instanceLimit ? (int)$instanceLimit : null;
     }
 
+    /**
+     * Parse a server location value such as "12" or "12|Frankfurt" into a server ID.
+     *
+     * @param mixed $value
+     * @return int|null Null when the value does not start with a positive integer.
+     */
     public static function parseServerLocationValue(mixed $value): ?int
     {
         if ($value === null || $value === '') {
@@ -323,6 +398,9 @@ class Helper
     }
 
     /**
+     * Collect non-empty location values from configurable options and custom fields.
+     *
+     * @param array<string, mixed> $params WHMCS module parameters.
      * @return list<string>
      */
     private static function getServerLocationCandidateValues(array $params): array
@@ -346,7 +424,14 @@ class Helper
     }
 
     /**
+     * Match a location label (for example "Frankfurt, DE") to a PanelAlpha server ID.
+     *
+     * First the label is matched against server names, then known city names are
+     * matched against geo tokens in the server name.
+     *
+     * @param string $label
      * @param array<int, array{id?: int, name?: string}> $servers
+     * @return int|null
      */
     public static function resolveServerLocationFromLabel(string $label, array $servers): ?int
     {
@@ -415,7 +500,13 @@ class Helper
     }
 
     /**
+     * Get the server ID the client picked as location.
+     *
+     * Numeric values are used first. Labels are only resolved when $servers is given.
+     *
+     * @param array<string, mixed> $params WHMCS module parameters.
      * @param array<int, array{id?: int, name?: string}>|null $servers
+     * @return int|null
      */
     public static function getServerLocation(array $params, ?array $servers = null): ?int
     {
@@ -440,6 +531,12 @@ class Helper
         return null;
     }
 
+    /**
+     * Strip the label from a "value|label" option value.
+     *
+     * @param mixed $value
+     * @return mixed The part before the pipe, or the value unchanged.
+     */
     public static function normalizeConfigurableOptionValue(mixed $value): mixed
     {
         if (!is_string($value) || !str_contains($value, '|')) {
@@ -449,6 +546,15 @@ class Helper
         return explode('|', $value, 2)[0];
     }
 
+    /**
+     * Build the hosting account config sent to PanelAlpha.
+     *
+     * Merges the product custom config (advanced mode), custom fields and configurable
+     * options, in that order, then drops module-only keys.
+     *
+     * @param array<string, mixed> $params WHMCS module parameters.
+     * @return array<string, mixed>
+     */
     public static function getHostingAccountConfig(array $params): array
     {
         $config = [];
@@ -462,6 +568,7 @@ class Helper
             ...$params['configoptions'],
         ];
 
+        // A three letter location value (for example "ams") is a geo affinity, not a server ID.
         $locationValue = $config['location'] ?? $config['Location'] ?? null;
         if ($locationValue !== null && self::parseServerLocationValue($locationValue) === null) {
             $geoAffinity = self::normalizeConfigurableOptionValue($locationValue);
@@ -472,10 +579,10 @@ class Helper
 
         $filtered = array_filter(
             $config,
-            static function ($value, $key) {
+            static function ($key) {
                 return !in_array($key, self::$hostingAccountConfigExcludedKeys, true);
             },
-            ARRAY_FILTER_USE_BOTH
+            ARRAY_FILTER_USE_KEY
         );
 
         return array_map([self::class, 'normalizeConfigurableOptionValue'], $filtered);

@@ -126,6 +126,7 @@ $_LANG['aa']['service']['panelalpha']['sso'] = 'SSO';
 $_LANG['aa']['service']['panelalpha']['login_to_panelalpha_as_user'] = 'Als Benutzer in PanelAlpha einloggen';
 
 $_LANG['aa']['button']['generate_configurable_options'] = 'Konfigurierbare Optionen generieren';
+$_LANG['aa']['button']['show_location_on_order_form'] = 'Standort im Bestellformular anzeigen';
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress-Verwaltung';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'WordPress-Verwaltung';
@@ -135,3 +136,7 @@ $_LANG['general']['none'] = 'Keine';
 
 $_LANG['messages.no_user_from_panelalpha'] = 'Benutzer von PanelAlpha nicht gefunden.';
 $_LANG['messages.no_service_from_panelalpha'] = 'Service von PanelAlpha nicht gefunden.';
+$_LANG['messages.invalid_user_id'] = 'Das Feld "User ID" dieses Services muss eine positive Zahl sein, "%s" angegeben.';
+$_LANG['messages.user_id_not_found'] = 'PanelAlpha-Benutzer #%d aus dem Feld "User ID" dieses Services wurde nicht gefunden.';
+$_LANG['messages.user_email_exists_not_linked'] = 'Ein PanelAlpha-Benutzer mit dieser E-Mail-Adresse existiert bereits (Benutzer #%d), ist aber nicht mit diesem WHMCS-Kunden verknüpft. Prüfen Sie, ob es dieselbe Person ist, tragen Sie die ID im Feld "User ID" des Services ein und führen Sie Create erneut aus.';
+$_LANG['messages.trial_owner_mismatch'] = 'Upgrade der Testversion abgelehnt: Der PanelAlpha-Testservice #%d gehört zu einer anderen E-Mail-Adresse als dieser WHMCS-Kunde. Das Feld "Service ID" wurde geleert. Wenn es dieselbe Person ist, gleichen Sie die E-Mail-Adressen an, tragen Sie %d im Feld "Service ID" ein und führen Sie Create erneut aus. Um stattdessen einen neuen, leeren Service anzulegen, führen Sie Create mit leerem Feld erneut aus.';

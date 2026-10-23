@@ -17,3 +17,6 @@ vendor/
 # Logs
 error_log
 *.log
+
+# Tests
+.phpunit.result.cache

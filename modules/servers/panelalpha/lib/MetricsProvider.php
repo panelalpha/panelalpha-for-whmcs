@@ -7,21 +7,32 @@ use WHMCS\Module\Server\PanelAlpha\Models\Server;
 use WHMCS\UsageBilling\Contracts\Metrics\MetricInterface;
 use WHMCS\UsageBilling\Contracts\Metrics\ProviderInterface;
 use WHMCS\UsageBilling\Metrics\Metric;
-use WHMCS\UsageBilling\Metrics\Units\Accounts;
-use WHMCS\UsageBilling\Metrics\Units\WholeNumber;
 use WHMCS\UsageBilling\Metrics\Units\GigaBytes;
 use WHMCS\UsageBilling\Metrics\Units\MegaBytes;
+use WHMCS\UsageBilling\Metrics\Units\WholeNumber;
 use WHMCS\UsageBilling\Metrics\Usage;
 
+/**
+ * Usage billing metrics for PanelAlpha services.
+ */
 class MetricsProvider implements ProviderInterface
 {
+    /** @var array WHMCS module params; "serverid" selects the server to query. */
     private $moduleParams = [];
 
+    /**
+     * @param array $moduleParams WHMCS module params.
+     */
     public function __construct($moduleParams)
     {
         $this->moduleParams = $moduleParams;
     }
 
+    /**
+     * List the metrics this module reports.
+     *
+     * @return Metric[]
+     */
     public function metrics()
     {
         return [
@@ -59,7 +70,9 @@ class MetricsProvider implements ProviderInterface
     }
 
     /**
-     * @return array
+     * Get usage of all services on the server.
+     *
+     * @return array<int|string, Metric[]> Metrics keyed by PanelAlpha service ID.
      * @throws \Exception
      */
     public function usage(): array
@@ -70,22 +83,24 @@ class MetricsProvider implements ProviderInterface
 
         $usage = [];
         foreach ($data as $serviceId => $stats) {
-            $data = [
+            $serviceData = [
                 'active_instances' => $stats['active_instances'],
                 'remote_backups_size' => $stats['remote_backups_size'],
                 'disk_usage' => $stats['disk_usage'],
                 'visitors' => $stats['visitors'],
                 'bandwidth' => $stats['bandwidth'],
             ];
-            $usage[$serviceId] = $this->wrapUserData($data);
+            $usage[$serviceId] = $this->wrapUserData($serviceData);
         }
 
         return $usage;
     }
 
     /**
-     * @param $panelalphaServiceId
-     * @return array
+     * Get usage of one service.
+     *
+     * @param int|string|null $panelalphaServiceId PanelAlpha service ID; empty returns no metrics.
+     * @return Metric[]
      * @throws \Exception
      */
     public function tenantUsage($panelalphaServiceId): array
@@ -109,18 +124,19 @@ class MetricsProvider implements ProviderInterface
     }
 
     /**
-     * @param $data
-     * @return array
+     * Attach usage values to the metrics. Metrics with a missing or null value get no usage.
+     *
+     * @param array $data Usage values keyed by metric system name.
+     * @return Metric[]
      */
     private function wrapUserData($data): array
     {
         $wrapped = [];
         foreach ($this->metrics() as $metric) {
             $key = $metric->systemName();
-            if ($data[$key]) {
-                $value = $data[$key];
+            if (array_key_exists($key, $data) && $data[$key] !== null) {
                 $metric = $metric->withUsage(
-                    new Usage($value)
+                    new Usage($data[$key])
                 );
             }
 

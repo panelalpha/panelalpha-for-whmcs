@@ -22,8 +22,8 @@
          for="{$_switchId|escape:'html'}">
     <input type="checkbox"
            id="{$_switchId|escape:'html'}"
-           {if $checked}checked="checked"{/if}
-            {if $disabled}disabled="disabled"{/if}
+           {if isset($checked) && $checked}checked="checked"{/if}
+            {if isset($disabled) && $disabled}disabled="disabled"{/if}
     />
     <span class="pa-slider"></span>
   </label>

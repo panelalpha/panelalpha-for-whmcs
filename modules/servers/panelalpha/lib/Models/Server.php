@@ -2,20 +2,39 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
- * @method static where(string $column, string $value)
- * @method static findOrFail(int $serverid)
+ * WHMCS server (tblservers).
+ *
+ * @property int $id
+ * @property string $name
  * @property string $type
- * @property int $port
  * @property string $hostname
  * @property string $username
+ * @property string $password
+ * @property string $accesshash
+ * @property string $secure
+ * @property int $port
+ * @property int $disabled
+ * @property-read Collection<int, ServerGroup> $groups
+ *
+ * @method static Builder where(mixed $column, mixed $operator = null, mixed $value = null)
+ * @method static Server findOrFail(int $id)
  */
 class Server extends Model
 {
+    /**
+     * @var string
+     */
     protected $table = 'tblservers';
 
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'name',
         'ipaddress',
@@ -45,8 +64,16 @@ class Server extends Model
         'disabled'
     ];
 
+    /**
+     * @var bool
+     */
     public $timestamps = false;
 
+    /**
+     * Server groups this server belongs to.
+     *
+     * @return BelongsToMany
+     */
     public function groups()
     {
         return $this->belongsToMany(
@@ -57,14 +84,25 @@ class Server extends Model
         );
     }
 
+    /**
+     * Move the protocol from the username field into the hostname and save.
+     *
+     * PanelAlpha has no username, so the server form (server.js) stores the
+     * protocol (http or https) in the username field. Here it is prepended
+     * to the hostname and the username is cleared.
+     *
+     * @return void
+     */
     public function setHostname()
     {
         $this->hostname = $this->username . '://' . $this->hostname;
-        $this->username = "";
+        $this->username = '';
         $this->save();
     }
 
     /**
+     * Find the first server whose hostname contains the given value.
+     *
      * @param string $hostname
      * @return Server|null
      */

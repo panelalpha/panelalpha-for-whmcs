@@ -2,15 +2,31 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * WHMCS email template (tblemailtemplates).
+ *
+ * @property int $id
+ * @property string $type
+ * @property string $name
  * @property string $subject
  * @property string $message
+ *
+ * @method static Builder where(mixed $column, mixed $operator = null, mixed $value = null)
+ * @method static bool insert(array $values)
  */
 class EmailTemplate extends Model
 {
+    /**
+     * @var string
+     */
     protected $table = 'tblemailtemplates';
+
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'type',
         'name',
@@ -27,7 +43,10 @@ class EmailTemplate extends Model
     ];
 
     /**
-     * @var array<array>
+     * Templates created by createPanelalphaEmailTemplates(), keyed by template name.
+     * The "template" path is relative to the WHMCS root directory.
+     *
+     * @var array<string, array{type: string, name: string, subject: string, template: string}>
      */
     private static array $emailTemplates = [
         'PanelAlpha Service Termination' => [
@@ -35,7 +54,6 @@ class EmailTemplate extends Model
             'name' => 'PanelAlpha Service Termination',
             'subject' => 'Manual Service Termination',
             'template' => '/modules/servers/panelalpha/resources/templates/emails/serviceTerminationEmail.html',
-
         ],
         'PanelAlpha Welcome Email' => [
             'type' => 'product',
@@ -52,6 +70,32 @@ class EmailTemplate extends Model
     ];
 
     /**
+     * Replace the old client greeting in the termination email template.
+     *
+     * Older installs greet the admin with the client name in the termination email.
+     * Only the stock greeting line is replaced, so other edits made by the admin stay.
+     *
+     * @return void
+     */
+    public static function fixTerminationEmailGreeting(): void
+    {
+        $oldGreeting = '<p>Dear {$client_name},</p>';
+
+        self::where('name', 'PanelAlpha Service Termination')
+            ->where('type', 'admin')
+            ->where('message', 'like', '%' . $oldGreeting . '%')
+            ->get()
+            ->each(function (self $template) use ($oldGreeting) {
+                $template->message = str_replace($oldGreeting, '<p>Hello,</p>', $template->message);
+                $template->save();
+            });
+    }
+
+    /**
+     * Create the PanelAlpha email templates that do not exist yet.
+     *
+     * Existing templates are never overwritten, so admin edits are kept.
+     *
      * @return void
      */
     public static function createPanelalphaEmailTemplates(): void

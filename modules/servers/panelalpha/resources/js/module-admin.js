@@ -1,4 +1,14 @@
+/**
+ * Product module settings page in the WHMCS admin area.
+ */
 (function () {
+	/**
+	 * Returns a translation from window.WHMCS_LANG by dotted path.
+	 *
+	 * @param {string} path Dotted key, for example "aa.product.server.config.key.disk".
+	 * @param {string} [defaultText=''] Text returned when the key is missing.
+	 * @returns {string}
+	 */
 	function getLangText(path, defaultText = '') {
 		if (!window.WHMCS_LANG) return defaultText;
 
@@ -16,51 +26,67 @@
 		return current || defaultText;
 	}
 
+	/**
+	 * Uppercases the first character of a value.
+	 *
+	 * @param {*} value Plan config values can be numbers (for example disk_space_limit).
+	 * @returns {string}
+	 */
+	function capitalize(value) {
+		const str = String(value);
+		return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+	/**
+	 * Fills the plan summary and the hosting account config fields when a plan is selected.
+	 *
+	 * @param {jQuery} $
+	 */
 	function initPlanSelector($) {
 		const selectElement = $('#select-plan');
 		if (!selectElement.length) return;
 		selectElement.off('change.panelalpha').on('change.panelalpha', function () {
-			let selectedOption = $(this).find('option:selected');
+			const selectedOption = $(this).find('option:selected');
 
 			// Instance Limit
-			let instanceLimit = selectedOption.data('instance_limit');
+			const instanceLimit = selectedOption.data('instance_limit');
 			$('#instanceLimit').html(instanceLimit);
 
 			// Onboarding
-			let onboardingType = selectedOption.data('onboarding_type');
+			const onboardingType = selectedOption.data('onboarding_type');
 			$('#onboarding-name').html(getLangText(`aa.product.onboarding.name.${onboardingType}`));
 			$('#onboarding-description').attr('data-original-title', getLangText(`aa.product.onboarding.description.${onboardingType}`));
 
 			// Ask for Domain
-			let askForDomain = selectedOption.data('onboarding_ask_for_domain');
-			let askForDomainValue = (askForDomain === true || askForDomain === 1 || askForDomain === '1' || askForDomain === 'true') ? 'on' : '';
+			const askForDomain = selectedOption.data('onboarding_ask_for_domain');
+			const askForDomainValue = (askForDomain === true || askForDomain === 1 || askForDomain === '1' || askForDomain === 'true') ? 'on' : '';
 			$('#onboarding-ask-for-domain').val(askForDomainValue);
 
 			// Server Group
-			let serverGroupName = selectedOption.data('server_group') ?? null;
+			const serverGroupName = selectedOption.data('server_group') ?? null;
 			if (serverGroupName) {
 				$('#server-group').html(serverGroupName);
 			} else {
 				$('#server-group').html(getLangText(`aa.product.server_group.name.all`));
 			}
 
-			let serverAssignRule = selectedOption.data('server_assign_rule');
+			const serverAssignRule = selectedOption.data('server_assign_rule');
 			$('#server-assign-rule').html(getLangText(`aa.product.assign_rule.name.${serverAssignRule}`));
 			$('#assign-rule-description').attr('data-original-title', getLangText(`aa.product.assign_rule.description.${serverAssignRule}`));
 
 			// Server
-			let serverType = selectedOption.data('server_type');
+			const serverType = selectedOption.data('server_type');
 			$('#server-type').html(getLangText(`aa.product.server.${serverType}`));
 			$('#server-icon').attr('data-server', serverType);
 
 			// DNS Server
-			let isDnsServerInternal = selectedOption.data('dns_server_internal') ?? false;
-			let dnsServerType = selectedOption.data('dns_server_type') ?? null;
+			const isDnsServerInternal = selectedOption.data('dns_server_internal') ?? false;
+			const dnsServerType = selectedOption.data('dns_server_type') ?? null;
 			if (isDnsServerInternal) {
 				$('#dns-server').removeClass('text-none').html(getLangText(`aa.product.dns_server.${serverType}`));
 				$('#dns-server-icon').show().css('display', 'inline-block').attr('data-server', serverType);
 			} else if (dnsServerType) {
-				let dnsServerName = selectedOption.data('dns_server_name');
+				const dnsServerName = selectedOption.data('dns_server_name');
 				$('#dns-server').removeClass('text-none').html(getLangText(`aa.product.dns_server.${dnsServerType}`) + ` (${dnsServerName})`);
 				$('#dns-server-icon').show().css('display', 'inline-block').attr('data-server', dnsServerType);
 			} else {
@@ -69,13 +95,13 @@
 			}
 
 			// Email Server
-			let isEmailServerInternal = selectedOption.data('email_server_internal') ?? false;
-			let emailServerType = selectedOption.data('email_server_type') ?? null;
+			const isEmailServerInternal = selectedOption.data('email_server_internal') ?? false;
+			const emailServerType = selectedOption.data('email_server_type') ?? null;
 			if (isEmailServerInternal) {
 				$('#email-server').removeClass('text-none').html(getLangText(`aa.product.email_server.${serverType}`));
 				$('#email-server-icon').show().css('display', 'inline-block').attr('data-server', serverType);
 			} else if (emailServerType) {
-				let emailServerName = selectedOption.data('email_server_name');
+				const emailServerName = selectedOption.data('email_server_name');
 				$('#email-server').removeClass('text-none').html(getLangText(`aa.product.email_server.${emailServerType}`, emailServerType) + ` (${emailServerName})`);
 				$('#email-server-icon').show().css('display', 'inline-block').attr('data-server', emailServerType);
 
@@ -90,8 +116,8 @@
 
 			// Hosting Account Config
 			$('#account-config').empty();
-			let accountConfig = selectedOption.data('account_config');
-			let config = JSON.parse(JSON.stringify(accountConfig));
+			const accountConfig = selectedOption.data('account_config');
+			const config = Array.isArray(accountConfig) ? accountConfig : [];
 			config.forEach((field) => {
 				const row = $('<div>').addClass('account-config plan-settings-cell-value').css('margin-bottom', '6px');
 
@@ -100,21 +126,25 @@
 					.attr('id', field.name)
 					.text(getLangText(`aa.product.server.config.key.${field.name}`) + ':');
 
-				let valueEl = $('<span>').css('margin-left', '4px').attr('id', field.name);
+				const valueEl = $('<span>').css('margin-left', '4px').attr('id', field.name);
 
 				switch (field.type) {
 					case 'text':
 						valueEl.text(field.value !== null ? capitalize(field.value) : '-');
 						break;
 
-					case 'select':
+					case 'select': {
 						const selectValue = getLangText(`aa.product.server.config.value.${field.value}`);
 						valueEl.text(selectValue || (field.value !== null ? capitalize(field.value) : '-'));
 						break;
+					}
 
 					case 'checkbox':
 						if (field.value === true) {
 							valueEl.append($('<div>').addClass('icon').attr('data-icon', 'checkIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
+							if (field.name === 'allow_user_choose_location') {
+								valueEl.append($('<button type="button" id="button-allow-user-choose-location" class="btn btn-default btn-xs">').css('margin-left', '12px').text(getLangText('aa.button.show_location_on_order_form', 'Show Location On Order Form')));
+							}
 						} else {
 							valueEl.append($('<div>').addClass('icon').attr('data-icon', 'uncheckIcon').css('height', '20px').css('width', '20px').css('display', 'inline-block'));
 						}
@@ -150,13 +180,9 @@
 				$('#account-config').append(row);
 			});
 
-			function capitalize(str) {
-				return str.charAt(0).toUpperCase() + str.slice(1);
-			}
-
-// Custom Hosting Account Configuration
+			// Custom Hosting Account Configuration
 			$('#hosting-account-config').empty();
-			let hostingAccountConfig = JSON.parse(JSON.stringify(accountConfig));
+			const hostingAccountConfig = Array.isArray(accountConfig) ? accountConfig : [];
 			hostingAccountConfig.forEach((field) => {
 				const row = $('<div>').addClass('account-config plan-settings-cell-value').css('margin-bottom', '6px');
 
@@ -218,7 +244,7 @@
 
 			// Configurable Options
 			$('.configurable-options-left').empty();
-			let configurableOptions = selectedOption.data('configurable-options');
+			const configurableOptions = selectedOption.data('configurable-options');
 			if (configurableOptions && Array.isArray(configurableOptions)) {
 				configurableOptions.forEach((option) => {
 					const optionRow = $('<div>').addClass('configurable-option-row');
@@ -234,17 +260,26 @@
 			updateHostingAccountConfigJSON();
 		});
 
-		// ToDo check this
+		// configoption[6] stores the onboarding type, so keep it in sync with the label shown for the plan.
 		const onboardingType = $('#onboarding-name');
 		$('[name="configoption[6]"]').val(onboardingType.text());
 
-		onboardingType.off('DOMSubtreeModified.panelalpha').on("DOMSubtreeModified.panelalpha", function () {
-			let onboardingTypeValue = $(this).text();
-			$('[name="configoption[6]"]').val(onboardingTypeValue);
-		});
+		// DOMSubtreeModified is no longer fired by current browsers, so watch the label instead.
+		if (onboardingType.length && !onboardingType.data('panelalphaObserver')) {
+			const observer = new MutationObserver(function () {
+				$('[name="configoption[6]"]').val(onboardingType.text());
+			});
+			observer.observe(onboardingType[0], { childList: true, characterData: true, subtree: true });
+			onboardingType.data('panelalphaObserver', observer);
+		}
 		selectElement.trigger('change.panelalpha');
 	}
 
+	/**
+	 * Turns the default theme field into a select2 search over the WordPress.org theme directory.
+	 *
+	 * @param {jQuery} $
+	 */
 	function initThemeSelector($) {
 		$('#select-default-theme').select2({
 			width: 300,
@@ -252,7 +287,7 @@
 			minimumInputLength: 4,
 			ajax: {
 				url: function (params) {
-					return 'https://api.wordpress.org/themes/info/1.1/?action=query_themes&request[search]=' + params.term;
+					return 'https://api.wordpress.org/themes/info/1.1/?action=query_themes&request[search]=' + encodeURIComponent(params.term || '');
 				},
 				dataType: 'json',
 				global: false,
@@ -264,8 +299,13 @@
 		});
 	}
 
+	/**
+	 * Keeps the hidden "automatic" config option in sync with its visible checkbox.
+	 *
+	 * @param {jQuery} $
+	 */
 	function initAutomaticInstanceProvisioningTracking($) {
-		let automaticCheckbox = $('[name="configoption[2]"]');
+		const automaticCheckbox = $('[name="configoption[2]"]');
 
 		function isOn(val) {
 			return val === 1 || val === '1' || val === true || val === 'true' || val === 'on';
@@ -281,6 +321,11 @@
 		});
 	}
 
+	/**
+	 * Shows or hides the optional advanced fields.
+	 *
+	 * @param {boolean} state
+	 */
 	function toggleAdvancedOptions(state) {
 		if (state) {
 			$('.config-field-advanced-optional').show();
@@ -289,6 +334,9 @@
 		}
 	}
 
+	/**
+	 * Writes all hosting account config fields as a query string into #hosting-account-config-json.
+	 */
 	window.updateHostingAccountConfigJSON = function updateHostingAccountConfigJSON() {
 		const configData = {};
 
@@ -329,9 +377,11 @@
 		).join('&');
 
 		$('#hosting-account-config-json').val(configString);
-	}
+	};
 
-
+	/**
+	 * Restores the hosting account config fields from the saved query string.
+	 */
 	function loadSavedConfigData() {
 		try {
 			const savedDataString = $('#hosting-account-config-json').val() || '';
@@ -376,7 +426,11 @@
 		}
 	}
 
-
+	/**
+	 * Sets up the button that shows or hides the advanced mode section.
+	 *
+	 * @param {jQuery} $
+	 */
 	function initAdvancedModeToggle($) {
 		const $section = $('.advanced-mode-section');
 		const $advancedModeState = $('#advanced-mode-state');
@@ -427,17 +481,69 @@
 		updateHostingAccountConfigJSON();
 	});
 
-
-	$(document).on('click', '#generate-configurable-option-button', function(event) {
+	// Post a new form so only the action and CSRF token are sent, not the whole product form.
+	$(document).on('click', '#generate-configurable-option-button', function (event) {
 		event.preventDefault();
 
-		const url = new URL(window.location.href);
-		url.searchParams.append('custom', 'generate-configurable-options');
+		const tokenInput = document.querySelector('input[name="token"]');
+		if (!tokenInput || !tokenInput.value) {
+			return;
+		}
 
-		window.location.assign(url.toString());
+		const form = document.createElement('form');
+		form.method = 'POST';
+		form.action = window.location.pathname + window.location.search;
+
+		const customInput = document.createElement('input');
+		customInput.type = 'hidden';
+		customInput.name = 'custom';
+		customInput.value = 'generate-configurable-options';
+		form.appendChild(customInput);
+
+		const tokenField = document.createElement('input');
+		tokenField.type = 'hidden';
+		tokenField.name = 'token';
+		tokenField.value = tokenInput.value;
+		form.appendChild(tokenField);
+
+		document.body.appendChild(form);
+		form.submit();
 	});
 
+	// Creates the "Location" custom field from the locations of the selected plan's server.
+	$(document).on('click', '#button-allow-user-choose-location', function (event) {
+		event.preventDefault();
 
+		const tokenInput = document.querySelector('input[name="token"]');
+		if (!tokenInput || !tokenInput.value) {
+			return;
+		}
+
+		const form = document.createElement('form');
+		form.method = 'POST';
+		form.action = window.location.pathname + window.location.search;
+
+		const fields = {
+			custom: 'create-location-custom-field',
+			plan_id: $('#select-plan').val() || '',
+			token: tokenInput.value,
+		};
+		Object.keys(fields).forEach(function (name) {
+			const input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = name;
+			input.value = fields[name];
+			form.appendChild(input);
+		});
+
+		document.body.appendChild(form);
+		form.submit();
+	});
+
+	/**
+	 * Initializes the page. Runs on DOMContentLoaded and again after every AJAX call,
+	 * because WHMCS reloads the module settings tab with AJAX.
+	 */
 	function initAll() {
 		if (typeof window.jQuery === 'undefined') return;
 		const $ = window.jQuery;

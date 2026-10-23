@@ -76,10 +76,13 @@ class PanelAlphaApiTest extends TestCase
 
         $requestMock = Mockery::mock(Request::class);
         $requestMock->shouldReceive('setAction')->with('getPlans')->once();
-        $requestMock->shouldReceive('call')
-            ->with('GET', 'plans?per_page=100')
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'plans?per_page=100&page=1')
             ->once()
-            ->andReturn($expectedPlans);
+            ->andReturn([
+                'data' => $expectedPlans,
+                'meta' => ['last_page' => 1],
+            ]);
 
         $reflection = new ReflectionClass($api);
         $property = $reflection->getProperty('request');
@@ -94,23 +97,182 @@ class PanelAlphaApiTest extends TestCase
     {
         $params = ['serverhostname' => 'example.com', 'serveraccesshash' => 'token'];
         $api = new PanelAlphaApi($params);
-        $email = 'test@example.com';
 
-        $expectedUser = ['id' => 1, 'email' => $email];
+        $cases = [
+            'test@example.com' => 'users/email?email=test%40example.com',
+            'jan+tag@example.com' => 'users/email?email=jan%2Btag%40example.com',
+        ];
+
+        foreach ($cases as $email => $expectedEndpoint) {
+            $expectedUser = ['id' => 1, 'email' => $email];
+
+            $requestMock = Mockery::mock(Request::class);
+            $requestMock->shouldReceive('setAction')->with('getUser')->once();
+            $requestMock->shouldReceive('call')
+                ->with('GET', $expectedEndpoint)
+                ->once()
+                ->andReturn($expectedUser);
+
+            $reflection = new ReflectionClass($api);
+            $property = $reflection->getProperty('request');
+            $property->setAccessible(true);
+            $property->setValue($api, $requestMock);
+
+            $user = $api->getUser($email);
+            $this->assertEquals($expectedUser, $user);
+        }
+    }
+
+    public function testGetServicesStopsAfterSingleRequestWhenFirstPageIsPartialAndMetaHasNoLastPage(): void
+    {
+        $params = ['serverhostname' => 'example.com', 'serveraccesshash' => 'token'];
+        $api = new PanelAlphaApi($params);
 
         $requestMock = Mockery::mock(Request::class);
-        $requestMock->shouldReceive('setAction')->with('getUser')->once();
-        $requestMock->shouldReceive('call')
-            ->with('GET', 'users/email?email=' . $email)
+        $requestMock->shouldReceive('setAction')->with('getServices')->once();
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'services?per_page=100&page=1')
             ->once()
-            ->andReturn($expectedUser);
+            ->andReturn([
+                'data' => [
+                    ['id' => 7],
+                    ['id' => 8],
+                ],
+            ]);
 
         $reflection = new ReflectionClass($api);
         $property = $reflection->getProperty('request');
         $property->setAccessible(true);
         $property->setValue($api, $requestMock);
 
-        $user = $api->getUser($email);
-        $this->assertEquals($expectedUser, $user);
+        $services = $api->getServices();
+
+        $this->assertCount(2, $services);
+        $this->assertSame(7, $services[0]['id']);
+        $this->assertSame(8, $services[1]['id']);
+    }
+
+    public function testGetServicesRequestsSecondPageWhenFirstPageIsFullWithoutLastPageMeta(): void
+    {
+        $params = ['serverhostname' => 'example.com', 'serveraccesshash' => 'token'];
+        $api = new PanelAlphaApi($params);
+
+        $page1Data = array_map(static fn (int $id): array => ['id' => $id], range(1, 100));
+
+        $requestMock = Mockery::mock(Request::class);
+        $requestMock->shouldReceive('setAction')->with('getServices')->once();
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'services?per_page=100&page=1')
+            ->once()
+            ->andReturn(['data' => $page1Data]);
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'services?per_page=100&page=2')
+            ->once()
+            ->andReturn(['data' => []]);
+
+        $reflection = new ReflectionClass($api);
+        $property = $reflection->getProperty('request');
+        $property->setAccessible(true);
+        $property->setValue($api, $requestMock);
+
+        $services = $api->getServices();
+
+        $this->assertCount(100, $services);
+        $this->assertSame(1, $services[0]['id']);
+        $this->assertSame(100, $services[99]['id']);
+    }
+
+    public function testGetServicesFetchesAllPaginatedPages(): void
+    {
+        $params = ['serverhostname' => 'example.com', 'serveraccesshash' => 'token'];
+        $api = new PanelAlphaApi($params);
+
+        $page1Data = array_map(static fn (int $id): array => ['id' => $id], range(1, 100));
+        $page2Data = [['id' => 101]];
+
+        $requestMock = Mockery::mock(Request::class);
+        $requestMock->shouldReceive('setAction')->with('getServices')->once();
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'services?per_page=100&page=1')
+            ->once()
+            ->andReturn([
+                'data' => $page1Data,
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 2,
+                    'per_page' => 100,
+                    'total' => 101,
+                ],
+            ]);
+        $requestMock->shouldReceive('callListResponse')
+            ->with('GET', 'services?per_page=100&page=2')
+            ->once()
+            ->andReturn([
+                'data' => $page2Data,
+                'meta' => [
+                    'current_page' => 2,
+                    'last_page' => 2,
+                    'per_page' => 100,
+                    'total' => 101,
+                ],
+            ]);
+
+        $reflection = new ReflectionClass($api);
+        $property = $reflection->getProperty('request');
+        $property->setAccessible(true);
+        $property->setValue($api, $requestMock);
+
+        $services = $api->getServices();
+
+        $this->assertCount(101, $services);
+        $this->assertSame(1, $services[0]['id']);
+        $this->assertSame(100, $services[99]['id']);
+        $this->assertSame(101, $services[100]['id']);
+    }
+
+    public function testGetServicesStatsRethrowsOnFailure(): void
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('API unavailable');
+
+        $params = ['serverhostname' => 'example.com', 'serveraccesshash' => 'token'];
+        $api = new PanelAlphaApi($params);
+
+        $requestMock = Mockery::mock(Request::class);
+        $requestMock->shouldReceive('setAction')->with('getServicesStats')->once();
+        $requestMock->shouldReceive('call')
+            ->with('GET', 'services/stats')
+            ->once()
+            ->andThrow(new \Exception('API unavailable'));
+
+        $reflection = new ReflectionClass($api);
+        $property = $reflection->getProperty('request');
+        $property->setAccessible(true);
+        $property->setValue($api, $requestMock);
+
+        $api->getServicesStats();
+    }
+
+    public function testCreateServiceUsesLongerTimeoutAndRestoresIt()
+    {
+        $api = new PanelAlphaApi(['serverhostname' => 'example.com', 'serveraccesshash' => 'token']);
+
+        $requestMock = Mockery::mock(Request::class);
+        $requestMock->curl = new \WHMCS\Module\Server\PanelAlpha\Curl();
+        $requestMock->shouldReceive('setAction')->with('createService')->once();
+        $requestMock->shouldReceive('call')
+            ->once()
+            ->andReturnUsing(function () use ($requestMock) {
+                $this->assertSame(180, $requestMock->curl->getRequestTimeout());
+                return ['id' => 1];
+            });
+
+        $reflection = new ReflectionClass($api);
+        $property = $reflection->getProperty('request');
+        $property->setAccessible(true);
+        $property->setValue($api, $requestMock);
+
+        $this->assertSame(['id' => 1], $api->createService(1, 2, null, null, null));
+        $this->assertSame(60, $requestMock->curl->getRequestTimeout());
     }
 }

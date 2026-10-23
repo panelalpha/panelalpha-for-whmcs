@@ -195,6 +195,13 @@
                          data-icon="checkIcon"
                          style="height: 20px; width: 20px; display: inline-block;"
                     ></div>
+                    {if $config['name'] === 'allow_user_choose_location'}
+                      <button type="button"
+                              id="button-allow-user-choose-location"
+                              class="btn btn-default btn-xs"
+                              style="margin-left: 12px;"
+                      >{$LANG['aa']['button']['show_location_on_order_form']}</button>
+                    {/if}
                   {elseif $config['value'] === false || $config['value'] === null}
                     <div class="icon"
                          data-icon="uncheckIcon"

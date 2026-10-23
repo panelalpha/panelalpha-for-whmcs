@@ -31,6 +31,33 @@ class HelperTest extends TestCase
         $this->assertNull(Helper::validateApiToken());
     }
 
+    public function testValidateApiTokenRejectsWrongToken()
+    {
+        $output = $this->runValidateApiTokenInSubprocess('test_token', 'wrong_token');
+        $this->assertStringContainsString('"error": "Unauthorized"', $output);
+    }
+
+    public function testValidateApiTokenRejectsDifferentLengthToken()
+    {
+        $output = $this->runValidateApiTokenInSubprocess('test_token', 'short');
+        $this->assertStringContainsString('"error": "Unauthorized"', $output);
+    }
+
+    private function runValidateApiTokenInSubprocess(string $configToken, string $requestToken): string
+    {
+        $bootstrap = dirname(__DIR__) . '/bootstrap.php';
+        $code = sprintf(
+            'require %s; \WHMCS\Module\Addon\PanelAlpha\Helper::$config[\'api_token\'] = %s; $_SERVER[\'HTTP_API_TOKEN\'] = %s; \WHMCS\Module\Addon\PanelAlpha\Helper::validateApiToken();',
+            var_export($bootstrap, true),
+            var_export($configToken, true),
+            var_export($requestToken, true)
+        );
+        $command = escapeshellarg(PHP_BINARY) . ' -r ' . escapeshellarg($code) . ' 2>&1';
+        $output = shell_exec($command);
+
+        return is_string($output) ? $output : '';
+    }
+
     public function testValidateIpAddressSuccess()
     {
         Helper::$config['allow_from'] = '127.0.0.1';

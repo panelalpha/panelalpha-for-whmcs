@@ -1,6 +1,6 @@
 <link rel="stylesheet"
-      href="{$config['SystemURL']}/modules/servers/panelalpha/resources/css/module-admin.css"/>
-<link rel="stylesheet" href="{$config['SystemURL']}/modules/servers/panelalpha/resources/css/icons.css">
+      href="{$config['SystemURL']}/modules/servers/panelalpha/resources/css/module-admin.css?v={$version}"/>
+<link rel="stylesheet" href="{$config['SystemURL']}/modules/servers/panelalpha/resources/css/icons.css?v={$version}">
 
 <div class="pa-cards-wrap">
     {include file="components/product/product-plan-settings.tpl"}
@@ -16,4 +16,4 @@
 		window.config.SystemURL = '{$config.SystemURL}';
 		window.config.lang = {$LANG|json_encode};
 </script>
-<script src="{$config.SystemURL}/modules/servers/panelalpha/resources/js/module-admin.js"></script>
+<script src="{$config.SystemURL}/modules/servers/panelalpha/resources/js/module-admin.js?v={$version}"></script>

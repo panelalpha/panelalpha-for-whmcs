@@ -5,18 +5,26 @@ namespace WHMCS\Module\Server\PanelAlpha\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @method static ConfigurableOption firstOrCreate(array $array, int[] $array1)
+ * WHMCS configurable option choice (tblproductconfigoptionssub).
  *
  * @property int $id
- * @property int configid
+ * @property int $configid
  * @property string $optionname
- * @property int sortorder
- * @property bool hidden
+ * @property int $sortorder
+ * @property bool $hidden
+ *
+ * @method static ConfigurableOptionSub firstOrCreate(array $attributes, array $values = [])
  */
 class ConfigurableOptionSub extends Model
 {
+    /**
+     * @var string
+     */
     protected $table = 'tblproductconfigoptionssub';
 
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'configid',
         'optionname',
@@ -24,5 +32,8 @@ class ConfigurableOptionSub extends Model
         'hidden',
     ];
 
+    /**
+     * @var bool
+     */
     public $timestamps = false;
 }

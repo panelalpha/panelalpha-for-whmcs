@@ -1,77 +1,94 @@
+<div align="center">
+
 <p align="center">
-  <img src="https://www.inbs.software/assets/img/logo-pa.svg" alt="PanelAlpha Logo" width="200">
+  <img src="https://www.inbs.software/assets/img/logo-pa.svg" alt="PanelAlpha" width="200">
 </p>
 
-<h3 align="center">Gain Advantage With Full WordPress Automation</h3>
+<h1>Your WHMCS store.<br>Your PanelAlpha panel. In sync.</h1>
+
+<h3>
+Connect billing and provisioning so you run WordPress hosting from WHMCS without juggling two systems.
+</h3>
+
+<h3>
+<a href="#get-started"><b>Get started</b></a> ·
+<a href="docs/README.md"><b>Documentation</b></a> ·
+<a href="#support"><b>Support</b></a>
+</h3>
+
+<p>
+<a href="#what-you-can-automate">Provisioning</a> ·
+<a href="#what-you-can-automate">Client area</a> ·
+<a href="#requirements">Requirements</a> ·
+<a href="docs/02-products/trial-upgrades.md">Trials</a>
+</p>
+
+<p>
+<a href="#requirements"><img src="https://img.shields.io/badge/PHP-8.1%2B-777bb4?logo=php&logoColor=white" alt="PHP 8.1+"></a>
+<a href="#requirements"><img src="https://img.shields.io/badge/WHMCS-8.10–9.1-006687" alt="WHMCS 8.10–9.1"></a>
+<a href="#requirements"><img src="https://img.shields.io/badge/themes-Six_%26_Twenty--One-333" alt="Six and Twenty-One"></a>
+<a href="#license"><img src="https://img.shields.io/badge/license-Apache_2.0-0b7285" alt="Apache 2.0"></a>
+</p>
+
+</div>
 
 ---
 
-### About
+## What is PanelAlpha for WHMCS?
 
-**PanelAlpha WordPress Hosting For WHMCS** will let you complete all essential tasks in the provisioning and management of WordPress websites without leaving your WHMCS system.
+**PanelAlpha for WHMCS** is the official integration between [WHMCS](https://www.whmcs.com/) and your [PanelAlpha](https://www.panelalpha.com/) panel. It is built for hosting providers and resellers who sell WordPress hosting through WHMCS. PanelAlpha handles the sites, plans and the customer control panel. WHMCS stays the place for clients, orders and invoices.
 
-PanelAlpha delivers a wide selection of automation and control tools for WordPress instances, which together redefine the web hosting experience for both the providers and their clients. With Extendify integration driving an AI-powered onboarding and a comprehensive customer panel well-optimized for UX, PanelAlpha leads a major shift in the industry norms and expectations for WordPress hosting services.
+The download contains two parts that you set up once:
 
-Beyond enabling single sign-on access to the platform, PanelAlpha WordPress Hosting For WHMCS will offer additional toolkit helping your customers to keep their WordPress sites running smoothly. With it, they will remotely monitor the status of the service along with its addons and usage billing details for active licenses. You will enjoy access to the same range of new features in the admin area, enriched with practical options for configuring services per PanelAlpha plan and automating the creation of WordPress instances during the service setup process.
+- the **server module**, which WHMCS uses to create and manage services in PanelAlpha,
+- the **addon**, which PanelAlpha uses to show WHMCS invoices and usage to your clients (Direct Billing).
 
-With the best of both worlds, PanelAlpha WordPress Hosting For WHMCS will provide your clients with unmatched convenience in handling WordPress websites. Download the module today to give your daily business routines a power-up with automatic billing and invoicing features.
+## What you can automate
 
-> [!NOTE]
-> You can find more information at [PanelAlpha WordPress Hosting For WHMCS](https://www.modulesgarden.com/products/whmcs/panelalpha-wordpress-hosting)
+### Admin area
 
-### Key Features
+- **Service lifecycle**: create, suspend, unsuspend, terminate and change package in step with WHMCS orders, with optional manual termination
+- **Plans**: see what the PanelAlpha plan includes and override hosting settings per product
+- **Configurable options**: generate WHMCS configurable options from the plan, such as number of sites or location
+- **WordPress sites**: optionally create a site with a default theme and name when the service is created
+- **Login as client**: open the client's PanelAlpha account, or their cPanel, DirectAdmin or Plesk account
+- **Metric billing**: bill active WordPress instances, remote backup size, disk usage, bandwidth and visitors
+- **Product addons**: sell PanelAlpha plugin and theme packages
+- **Account synchronisation**: import services that already exist in PanelAlpha
 
-#### Admin Area
-- **Service Management**:
-  - Create, Terminate, Suspend, or Unsuspend PanelAlpha Services.
-  - Change Service Package.
-  - Configure Services Per PanelAlpha Plan.
-- **Plan Configuration Insights**:
-  - View Instances Limit, Onboarding Type, Server Type and Group, Disk Space and Memory Limit, Selected DNS, and Email Server.
-- **WordPress Instance Provisioning**:
-  - Enable Automatic WordPress Instance Provisioning When Service Is Created.
-  - Define Default WordPress Instance Theme and Name.
-  - Toggle WordPress Instance Name Field On Order Form.
-  - Enable Only Manual Service Termination.
-  - Enable PanelAlpha Single Sign-On (SSO) For Client Area.
-- **Metric Billing Configuration**:
-  - Configure Billing For Active WordPress Instances, Remote Backups Size, and Disk Usage.
-- **Service Addons Management**:
-  - Create/Terminate Service Addons With Preconfigured Packages From PanelAlpha.
-  - View Selected Package Configuration, Including Plugins and Themes.
+### Client area
 
-#### Client Area
-- Use Single Sign-On (SSO) To Manage WordPress Instances In PanelAlpha.
-- View Current Usage Billing For:
-  - Active WordPress Instances.
-  - Remote Backups Size.
-  - Disk Usage.
+- One-click login to the PanelAlpha account, from the service page or the main menu
+- Current usage on the service page
+- Upgrade from a PanelAlpha trial to a paid service, keeping the sites
 
-#### General Info
-- Multi-Language Support.
-- Supports PHP 8.2 Back To PHP 7.4.
-- Supports WHMCS Themes "Six" and "Twenty-One".
-- Supports WHMCS V8.11 Back To WHMCS V8.8.
+### General
 
-### Installation
+- English and German, with WHMCS language overrides
+- WHMCS themes **Six** and **Twenty-One**
 
-This comprehensive tutorial will provide you with step-by-step instructions on the installation and configuration process of the PanelAlpha For WHMCS module. Our guide will ensure you successfully set up the module and customize the offered options to meet your business needs.
+## Get started
 
-1. Download the module from our repository.
-  - Direct download link: https://github.com/panelalpha/panelalpha-for-whmcs/archive/refs/heads/main.zip
+1. [Install the module](docs/01-getting-started/install.md) into your WHMCS.
+2. [Connect WHMCS to PanelAlpha](docs/01-getting-started/connect-to-panelalpha.md) by adding your panel as a server.
+3. [Set up Direct Billing](docs/01-getting-started/direct-billing.md) in the addon and in PanelAlpha.
+4. [Create a product](docs/02-products/products.md) for each plan you sell.
 
-2. Upload and extract the module files into the main WHMCS directory.
+The full guide is in [docs](docs/README.md).
 
-That's it! You have just successfully installed the PanelAlpha For WHMCS module!
+## Requirements
 
-### Documentation  
+| Requirement | Supported versions |
+| --- | --- |
+| PHP | **8.1** and newer |
+| WHMCS | **8.10** through **9.1** |
+| WHMCS themes | **Six**, **Twenty-One** |
+| PanelAlpha | A panel your WHMCS server can reach, and an admin API token from it |
 
-For detailed instructions on installation, configuration, and troubleshooting, please refer to the [official documentation](https://www.panelalpha.com/documentation/billing-systems-integrations/whmcs/#panelalpha-for-whmcs).
+## Support
 
-### Support  
+Need help? Use the [PanelAlpha contact page](https://manage.panelalpha.com/contact) or open an issue in this repository.
 
-Need assistance? Visit our [Contact Page](https://manage.panelalpha.com/contact) or create an issue in the repository.
+## License
 
-### License  
-
-This module is licensed under a Apache License 2.0. Please review the [license agreement](https://github.com/panelalpha/panelalpha-for-whmcs/blob/main/LICENSE) for detailed terms and conditions.  
+PanelAlpha for WHMCS is open source under the **Apache License 2.0**. See [LICENSE](LICENSE) for the full text.

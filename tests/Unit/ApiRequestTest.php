@@ -134,4 +134,72 @@ class ApiRequestTest extends TestCase
         $this->assertStringContainsString('Authorization: Bearer [redacted]', $sanitized['requestHeaders']);
         $this->assertStringContainsString('X-PanelAlpha-User: [redacted]', $sanitized['requestHeaders']);
     }
+
+    /**
+     * @dataProvider ssoActionsProvider
+     */
+    public function testSsoActionRedactsUrlInResponse(string $action): void
+    {
+        $params = [
+            'serverhostname' => 'example.com',
+            'serveraccesshash' => 'token',
+        ];
+
+        $request = new Request($params);
+        $request->setAction($action);
+
+        $ssoUrl = 'https://panel.example/sso/login?token=secret';
+        $lastCall = [
+            'requestHeaders' => '',
+            'responseHeaders' => '',
+            'request' => '{"url":"' . $ssoUrl . '"}',
+            'response' => '{"url":"' . $ssoUrl . '","nested":{"url":"' . $ssoUrl . '"}}',
+        ];
+
+        $sanitizeMethod = new ReflectionMethod(Request::class, 'sanitizeLastCall');
+        $sanitizeMethod->setAccessible(true);
+
+        $sanitized = $sanitizeMethod->invoke($request, $lastCall);
+
+        $this->assertStringNotContainsString($ssoUrl, $sanitized['response']);
+        $this->assertStringNotContainsString($ssoUrl, $sanitized['request']);
+        $this->assertStringContainsString('"url":"[redacted]"', $sanitized['response']);
+        $this->assertStringContainsString('"url":"[redacted]"', $sanitized['request']);
+    }
+
+    public static function ssoActionsProvider(): array
+    {
+        return [
+            'getControlPanelSsoUrl' => ['getControlPanelSsoUrl'],
+            'getSsoToken' => ['getSsoToken'],
+            'getLoginAsUserSsoToken' => ['getLoginAsUserSsoToken'],
+        ];
+    }
+
+    public function testNonSsoActionLeavesUrlInResponse(): void
+    {
+        $params = [
+            'serverhostname' => 'example.com',
+            'serveraccesshash' => 'token',
+        ];
+
+        $request = new Request($params);
+        $request->setAction('getServerAccount');
+
+        $plainUrl = 'https://panel.example/account/123';
+        $lastCall = [
+            'requestHeaders' => '',
+            'responseHeaders' => '',
+            'request' => '',
+            'response' => '{"url":"' . $plainUrl . '"}',
+        ];
+
+        $sanitizeMethod = new ReflectionMethod(Request::class, 'sanitizeLastCall');
+        $sanitizeMethod->setAccessible(true);
+
+        $sanitized = $sanitizeMethod->invoke($request, $lastCall);
+
+        $decoded = json_decode($sanitized['response'], true);
+        $this->assertSame($plainUrl, $decoded['url']);
+    }
 }

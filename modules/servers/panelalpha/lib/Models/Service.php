@@ -2,21 +2,34 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * WHMCS service (tblhosting).
+ *
+ * @property int $id
+ * @property int $userid
+ * @property int $packageid
+ * @property int $server
+ * @property string $domain
+ * @property string $domainstatus
+ * @property string $username
+ * @property string $password
+ * @property-read Product|null $product
+ * @property-read Server|null $serverModel
+ * @property-read Client|null $client
+ * @property-read Collection<int, CustomFieldValue> $customFieldValues
+ * @property-read int|null $panelalphaServiceId Value of the "Service ID" custom field.
+ *
  * @method static Service findOrFail(int $id)
  * @method static Service|null find(int $id)
- * @method static Illuminate\Database\Eloquent\Collection all()
- * @method static Illuminate\Database\Eloquent\Builder active()
- * @method static Illuminate\Database\Eloquent\Builder panelalpha()
- * @method bool save()
- *
- * @property string $username
- * @property string $domain
- * @property Product $product
- * @property Server $serverModel
- * @property int|null $panelalphaServiceId
+ * @method static Collection<int, Service> all(array|string $columns = ['*'])
+ * @method static Builder active()
+ * @method static Builder panelalpha()
  */
 class Service extends Model
 {
@@ -57,6 +70,14 @@ class Service extends Model
         'lastupdate'
     ];
 
+    /**
+     * Get the first active PanelAlpha service of a client.
+     *
+     * The result also has the product's configoption5 (SSO link in the main menu).
+     *
+     * @param int $clientId
+     * @return Service|null
+     */
     public static function getFirstServiceForClient(int $clientId)
     {
         return self::join('tblclients', 'tblhosting.userid', '=', 'tblclients.id')
@@ -72,6 +93,12 @@ class Service extends Model
             ->first();
     }
 
+    /**
+     * Find the WHMCS service linked to a PanelAlpha service by the "Service ID" custom field.
+     *
+     * @param int $panelalphaServiceId
+     * @return Service|null
+     */
     public static function getService(int $panelalphaServiceId): ?Service
     {
         $query = CustomFieldValue::with(['customField', 'service.product'])
@@ -85,42 +112,66 @@ class Service extends Model
             ->where('value', $panelalphaServiceId)
             ->first();
 
-        return $query->service;
+        return $query?->service;
     }
 
+    /**
+     * Product of this service.
+     *
+     * @return BelongsTo
+     */
     public function product()
     {
-        return $this->belongsTo(Product::class, "packageid");
+        return $this->belongsTo(Product::class, 'packageid');
     }
 
+    /**
+     * Custom field values of this service.
+     *
+     * @return HasMany
+     */
     public function customFieldValues()
     {
-        return $this->hasMany(CustomFieldValue::class, "relid");
+        return $this->hasMany(CustomFieldValue::class, 'relid');
     }
 
+    /**
+     * Server of this service. Named serverModel because "server" is the column name.
+     *
+     * @return BelongsTo
+     */
     public function serverModel()
     {
-        return $this->belongsTo(Server::class, "server");
+        return $this->belongsTo(Server::class, 'server');
     }
 
+    /**
+     * Client that owns this service.
+     *
+     * @return BelongsTo
+     */
     public function client()
     {
         return $this->belongsTo(Client::class, 'userid');
     }
 
     /**
+     * Get the PanelAlpha service ID from the "Service ID" custom field.
+     *
      * @return int|null
      */
     public function getPanelalphaServiceIdAttribute(): ?int
     {
-        return !empty($this->getCustomFieldValue('Service ID'))
-            ? (int) $this->getCustomFieldValue('Service ID')
-            : null;
+        $serviceId = $this->getCustomFieldValue('Service ID');
+
+        return !empty($serviceId) ? (int) $serviceId : null;
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Limit the query to active services.
+     *
+     * @param Builder $query
+     * @return Builder
      */
     public function scopeActive($query)
     {
@@ -128,8 +179,10 @@ class Service extends Model
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Limit the query to services of PanelAlpha products.
+     *
+     * @param Builder $query
+     * @return Builder
      */
     public function scopePanelalpha($query)
     {
@@ -139,6 +192,8 @@ class Service extends Model
     }
 
     /**
+     * Get the value of a custom field of this service by field name.
+     *
      * @param string $fieldName
      * @return string|null
      */

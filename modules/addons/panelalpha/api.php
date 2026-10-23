@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * HTTP endpoint called by the PanelAlpha panel.
+ *
+ * Every request must be a POST from an allowed IP address with a valid API-Token
+ * header. The `action` parameter selects the operation. Helper::jsonResponse()
+ * sends the response and ends the request.
+ */
+
 use WHMCS\Module\Addon\PanelAlpha\Helper;
 use WHMCS\Module\Addon\PanelAlpha\Models\Client;
 use WHMCS\Module\Addon\PanelAlpha\Models\DnsManager\GlobalSetting;
@@ -8,13 +16,9 @@ use WHMCS\Module\Addon\PanelAlpha\Models\DnsManager\Zone;
 require_once dirname(__FILE__) . '/lib/Helper.php';
 
 try {
-
     Helper::initWhmcs();
-
     Helper::validateHttpMethod();
-
     Helper::validateIpAddress();
-
     Helper::validateApiToken();
 
     if (empty($_REQUEST['action'])) {
@@ -51,8 +55,15 @@ try {
                 }
                 $reason = $_REQUEST['reason'];
             }
+            $serverHostname = null;
+            if (!empty($_REQUEST['server_hostname'])) {
+                if (!is_string($_REQUEST['server_hostname'])) {
+                    Helper::jsonResponse(["error" => "Invalid value for parameter 'server_hostname'"], 422);
+                }
+                $serverHostname = $_REQUEST['server_hostname'];
+            }
             try {
-                Helper::cancelService($serviceId, $reason);
+                Helper::cancelService($serviceId, $reason, $serverHostname);
                 Helper::jsonResponse(["success" => true]);
             } catch (\Exception $e) {
                 Helper::jsonResponse(["error" => $e->getMessage()], 422);
@@ -66,7 +77,14 @@ try {
             if ($invoiceId === false) {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'invoice_id'"], 422);
             }
-            $url = Helper::getPayInvoiceUrl($invoiceId);
+            $userId = null;
+            if (!empty($_REQUEST['user_id'])) {
+                $userId = filter_var($_REQUEST['user_id'], FILTER_VALIDATE_INT);
+                if ($userId === false) {
+                    Helper::jsonResponse("Not Found", 404);
+                }
+            }
+            $url = Helper::getPayInvoiceUrl($invoiceId, $userId);
             if (empty($url)) {
                 Helper::jsonResponse("Not Found", 404);
             }
@@ -82,12 +100,18 @@ try {
             if ($invoiceId === false) {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'invoice_id'"], 422);
             }
-            Helper::downloadInvoice($invoiceId);
+            $userId = null;
+            if (!empty($_REQUEST['user_id'])) {
+                $userId = filter_var($_REQUEST['user_id'], FILTER_VALIDATE_INT);
+                if ($userId === false) {
+                    Helper::jsonResponse("Not Found", 404);
+                }
+            }
+            Helper::downloadInvoice($invoiceId, $userId);
             break;
         case 'ping':
             Helper::jsonResponse("pong");
             break;
-
 
         // DNS Manager For WHMCS
         case 'dns_manager_test_connection':
@@ -126,10 +150,7 @@ try {
                     Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
                 }
 
-                $zone = Zone::find($zoneId);
-                if ($zone === null) {
-                    Helper::jsonResponse(["error" => "Zone not found"], 404);
-                }
+                $zone = Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
                 Helper::jsonResponse($zone);
             }
 
@@ -139,7 +160,6 @@ try {
                 }
                 $zoneName = $_REQUEST['zone_name'];
 
-                // user email
                 if (empty($_REQUEST['user_email'])) {
                     Helper::jsonResponse(["error" => "Parameter 'user_email' is required"], 422);
                 }
@@ -163,7 +183,6 @@ try {
             break;
 
         case 'dns_manager_create_zone':
-            // zone name
             if (empty($_REQUEST['zone_name'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_name' is required"], 422);
             }
@@ -172,7 +191,6 @@ try {
             }
             $zoneName = $_REQUEST['zone_name'];
 
-            // client
             if (empty($_REQUEST['user_email'])) {
                 Helper::jsonResponse(["error" => "Parameter 'user_email' is required"], 422);
             }
@@ -185,7 +203,6 @@ try {
                 Helper::jsonResponse(["error" => "Client not found"], 404);
             }
 
-            // ip address
             if (empty($_REQUEST['ip_address'])) {
                 Helper::jsonResponse(["error" => "Parameter 'ip_address' is required"], 422);
             }
@@ -220,7 +237,6 @@ try {
             break;
 
         case 'dns_manager_remove_zone':
-            // zone id
             if (empty($_REQUEST['zone_id'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_id' is required"], 422);
             }
@@ -229,29 +245,21 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
 
-            // client id
+            // Removing a zone is destructive, so the legacy lookup without an owner is not allowed here.
             if (empty($_REQUEST['user_email'])) {
                 Helper::jsonResponse(["error" => "Parameter 'user_email' is required"], 422);
             }
-            $userEmail = filter_var($_REQUEST['user_email'], FILTER_VALIDATE_EMAIL);
-            if ($userEmail === false) {
-                Helper::jsonResponse(["error" => "Invalid value for parameter 'user_email'"], 422);
-            }
-            $client = Client::where('email', $userEmail)->first();
-            if ($client === null) {
-                Helper::jsonResponse(["error" => "Client not found"], 404);
-            }
+            $zone = Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
 
             $result = Helper::localApi('dnsmanager', [
                 'dnsaction' => 'removeZone',
                 'zone_id' => (string)$zoneId,
-                'userid' => (string)$client->id,
+                'userid' => (string)$zone->clientid,
             ]);
             Helper::jsonResponse($result);
             break;
 
         case 'dns_manager_list_records':
-            // zone id
             if (empty($_REQUEST['zone_id'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_id' is required"], 422);
             }
@@ -259,6 +267,8 @@ try {
             if ($zoneId === false) {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
+
+            Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
 
             $result = Helper::localApi('dnsmanager', [
                 'dnsaction' => 'getZone',
@@ -268,7 +278,6 @@ try {
             break;
 
         case 'dns_manager_create_record':
-            // zone id
             if (empty($_REQUEST['zone_id'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_id' is required"], 422);
             }
@@ -277,7 +286,6 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
 
-            // record
             if (empty($_REQUEST['record'])) {
                 Helper::jsonResponse(["error" => "Parameter 'record' is required"], 422);
             }
@@ -285,6 +293,8 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'record'"], 422);
             }
             $record = $_REQUEST['record'];
+
+            Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
 
             $result = Helper::localApi('dnsmanager', [
                 'dnsaction' => 'addRecord',
@@ -295,7 +305,6 @@ try {
             break;
 
         case 'dns_manager_remove_record':
-            // zone id
             if (empty($_REQUEST['zone_id'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_id' is required"], 422);
             }
@@ -304,7 +313,6 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
 
-            // record
             if (empty($_REQUEST['record'])) {
                 Helper::jsonResponse(["error" => "Parameter 'record' is required"], 422);
             }
@@ -312,6 +320,8 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'record'"], 422);
             }
             $record = $_REQUEST['record'];
+
+            Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
 
             $result = Helper::localApi('dnsmanager', [
                 'dnsaction' => 'removeRecord',
@@ -322,7 +332,6 @@ try {
             break;
 
         case 'dns_manager_update_record':
-            // zone id
             if (empty($_REQUEST['zone_id'])) {
                 Helper::jsonResponse(["error" => "Parameter 'zone_id' is required"], 422);
             }
@@ -331,7 +340,6 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'zone_id'"], 422);
             }
 
-            // record
             if (empty($_REQUEST['record'])) {
                 Helper::jsonResponse(["error" => "Parameter 'record' is required"], 422);
             }
@@ -339,6 +347,8 @@ try {
                 Helper::jsonResponse(["error" => "Invalid value for parameter 'record'"], 422);
             }
             $record = $_REQUEST['record'];
+
+            Helper::requireDnsZoneOwnedByClientEmail($zoneId, $_REQUEST['action']);
 
             $result = Helper::localApi('dnsmanager', [
                 'dnsaction' => 'editRecord',

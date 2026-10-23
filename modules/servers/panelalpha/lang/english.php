@@ -140,6 +140,7 @@ $_LANG['aa']['service']['panelalpha']['login_to_hosting_control_panel_as_user'] 
 $_LANG['aa']['service']['panelalpha']['no_hosting_accounts'] = 'No hosting accounts available';
 
 $_LANG['aa']['button']['generate_configurable_options'] = 'Generate Configurable Options';
+$_LANG['aa']['button']['show_location_on_order_form'] = 'Show Location On Order Form';
 
 $_LANG['ca']['general']['panelalpha']['sso_link'] = 'WordPress Management';
 $_LANG['ca']['service']['panelalpha']['button']['sso_link'] = 'WordPress Management';
@@ -149,6 +150,10 @@ $_LANG['general']['none'] = 'None';
 
 $_LANG['messages.no_user_from_panelalpha'] = 'User from PanelAlpha not found.';
 $_LANG['messages.no_service_from_panelalpha'] = 'Service from PanelAlpha not found.';
+$_LANG['messages.invalid_user_id'] = 'The "User ID" field of this service must be a positive number, "%s" given.';
+$_LANG['messages.user_id_not_found'] = 'PanelAlpha user #%d from the "User ID" field of this service was not found.';
+$_LANG['messages.user_email_exists_not_linked'] = 'A PanelAlpha user with this email already exists (user #%d) but is not linked to this WHMCS client. Check that it is the same person, enter its ID in the service\'s "User ID" field and run Create again.';
+$_LANG['messages.trial_owner_mismatch'] = 'Trial upgrade refused: PanelAlpha trial service #%d belongs to a different email than this WHMCS client. The "Service ID" field was cleared. If it is the same person, make the emails match, enter %d in the "Service ID" field and run Create again. To create a new, empty service instead, run Create again with the field empty.';
 $_LANG['messages.change_plan_for_addons_not_supported'] = 'Change package for addons is not supported.';
 $_LANG['messages.service_deleted_manually'] = 'The service must be deleted manually.';
 $_LANG['messages.suspend_not_supported'] = 'Suspend action for addons is not supported.';

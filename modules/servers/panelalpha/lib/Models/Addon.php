@@ -2,19 +2,29 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use WHMCS\Database\Capsule;
 
 /**
- * @method static findOrFail(mixed $id)
- * @property mixed|null $selectedPackage
- * @property $packageId
- * @property $id
+ * WHMCS product addon (tbladdons).
+ *
+ * @property int $id
+ * @property string $name
+ * @property int $packageId PanelAlpha package ID stored in the addon module settings.
+ * @property array|null $selectedPackage PanelAlpha package picked by setSelectedPackage().
+ *
+ * @method static Addon findOrFail(mixed $id)
  */
 class Addon extends Model
 {
+    /**
+     * @var string
+     */
     protected $table = 'tbladdons';
 
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'packages',
         'name',
@@ -30,6 +40,8 @@ class Addon extends Model
     ];
 
     /**
+     * Read the PanelAlpha package ID (configoption1) from the addon module configuration.
+     *
      * @return int
      */
     public function getPackageIdAttribute(): int
@@ -42,7 +54,9 @@ class Addon extends Model
     }
 
     /**
-     * @param array $packages
+     * Pick the package assigned to this addon, or the first package when none matches.
+     *
+     * @param array<int, array<string, mixed>> $packages PanelAlpha packages from the API.
      * @return void
      */
     public function setSelectedPackage(array $packages): void
@@ -55,13 +69,15 @@ class Addon extends Model
             }
         }
         if (!$selectedPackage) {
-            $selectedPackage = $packages[0];
+            $selectedPackage = $packages[0] ?? null;
         }
         $this->selectedPackage = $selectedPackage;
     }
 
     /**
-     * @return mixed|null
+     * Get the package picked by setSelectedPackage().
+     *
+     * @return array<string, mixed>|null
      */
     public function getSelectedPackage()
     {
@@ -69,7 +85,9 @@ class Addon extends Model
     }
 
     /**
-     * @return array
+     * Get the plugin names of the selected package.
+     *
+     * @return string[]
      */
     public function getSelectedPackagePlugins(): array
     {
@@ -79,7 +97,9 @@ class Addon extends Model
     }
 
     /**
-     * @return array
+     * Get the theme names of the selected package.
+     *
+     * @return string[]
      */
     public function getSelectedPackageThemes(): array
     {

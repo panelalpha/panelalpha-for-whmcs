@@ -76,4 +76,38 @@ class RequestTest extends TestCase
         $secureMode->setAccessible(true);
         $this->assertFalse($secureMode->getValue($request));
     }
+
+    public function testNonJsonErrorPageGivesReadableMessage()
+    {
+        $request = new Request(['serverhostname' => 'example.com', 'serveraccesshash' => 'token']);
+        $request->curl = \Mockery::mock(\WHMCS\Module\Server\PanelAlpha\Curl::class);
+        $request->curl->shouldReceive('getLastHttpCode')->andReturn(502);
+        $request->curl->shouldReceive('getLastCall')->andReturn(['response' => '<html>Bad Gateway</html>']);
+
+        $method = (new ReflectionClass($request))->getMethod('processResponse');
+        $method->setAccessible(true);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Request failed (HTTP 502)');
+        $method->invoke($request);
+    }
+
+    public function testJsonErrorMessageIsPassedOn()
+    {
+        $request = new Request(['serverhostname' => 'example.com', 'serveraccesshash' => 'token']);
+        $request->curl = \Mockery::mock(\WHMCS\Module\Server\PanelAlpha\Curl::class);
+        $request->curl->shouldReceive('getLastHttpCode')->andReturn(422);
+        $request->curl->shouldReceive('getLastCall')->andReturn(['response' => '{"message":"The given data was invalid."}']);
+
+        $method = (new ReflectionClass($request))->getMethod('processResponse');
+        $method->setAccessible(true);
+
+        $this->expectExceptionMessage('The given data was invalid.');
+        $method->invoke($request);
+    }
+
+    protected function tearDown(): void
+    {
+        \Mockery::close();
+    }
 }

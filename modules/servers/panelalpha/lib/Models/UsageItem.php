@@ -2,16 +2,34 @@
 
 namespace WHMCS\Module\Server\PanelAlpha\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @method static where(string $column, int $value)
- * @method static insert(array $array)
+ * WHMCS usage billing item (tblusage_items).
+ *
+ * @property int $id
+ * @property string $rel_type
+ * @property int $rel_id
+ * @property string $module_type
+ * @property string $module
+ * @property string $metric
+ * @property string $included
+ * @property int $is_hidden
+ *
+ * @method static Builder where(mixed $column, mixed $operator = null, mixed $value = null)
+ * @method static bool insert(array $values)
  */
 class UsageItem extends Model
 {
+    /**
+     * @var string
+     */
     protected $table = 'tblusage_items';
 
+    /**
+     * @var string[]
+     */
     protected $fillable = [
         'rel_type',
         'rel_id',
@@ -22,7 +40,11 @@ class UsageItem extends Model
         'is_hidden'
     ];
 
-
+    /**
+     * Metrics the module reports to WHMCS usage billing.
+     *
+     * @var string[]
+     */
     protected static $usageItems = [
         'active_instances',
         'remote_backups_size',
@@ -31,6 +53,12 @@ class UsageItem extends Model
         'bandwidth',
     ];
 
+    /**
+     * Get the usage items of a product, creating missing ones as hidden.
+     *
+     * @param int $productId
+     * @return UsageItem[] One item per metric, in the order of $usageItems.
+     */
     public static function getUsageItems(int $productId)
     {
         $usageItems = [];
